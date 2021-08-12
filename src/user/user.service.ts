@@ -3,7 +3,9 @@ import {
 	ForbiddenException,
 	Injectable,
 	NotFoundException,
+	OnApplicationBootstrap,
 	UnauthorizedException,
+	Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -19,11 +21,46 @@ import { UserEntity } from './user.entity';
 import { RequestWithUser } from './user.utils';
 
 @Injectable()
-export class UserService {
+export class UserService implements OnApplicationBootstrap {
 	constructor(
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
-	) {}
+	) { }
+
+	async onApplicationBootstrap() {
+		const adminName = process.env.ADMIN_USERNAME || "admin";
+		let adminPassword: string;
+
+		if ((await this.userRepository.findOne({ username: adminName })) != null) {
+			return;
+		}
+
+		if (!process.env.ADMIN_PASSWORD) {
+			adminPassword = this.makePassword(12);
+			Logger.warn("Admin Pass: " + adminPassword);
+		} else {
+			adminPassword = process.env.ADMIN_PASSWORD
+		}
+
+		let toSave = Object.assign(new UserEntity(), {
+			username: "admin",
+			password: await bcrypt.hash(adminPassword, 10),
+			role: Role.Admin,
+			email: ""
+		});
+		await this.userRepository.save(toSave);
+	}
+
+	private makePassword(length: number) {
+		let result: string = "";
+		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&é\"\'(-è_çà)=';
+		const charactersLength = characters.length;
+		for (var i = 0; i < length; i++) {
+			result += characters.charAt(Math.floor(Math.random() *
+				charactersLength));
+		}
+		return result;
+	}
 
 	public async getUsers(
 		page: number,
