@@ -1,0 +1,23 @@
+name: Docker Build & Publish - master
+
+on:
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag registry.asgaard.fr/beauf-net-api:dev
+      
+    - name: Login to Registry
+      run: echo ${{ secrets.ASGAARD_REGISTRY_PASSWORD }} | docker login -u ${{ secrets.ASGAARD_REGISTRY_USERNAME }} --password-stdin
+
+    - name: Push the Docker image to Registry
+      run: docker push registry.asgaard.fr/beauf-net-api:latest
