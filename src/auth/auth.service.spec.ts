@@ -68,7 +68,7 @@ describe('Auth Service', () => {
 			const credentials = { identifier: 'username', password: 'password' };
 
 			jest.spyOn(userService, 'getUserByUsername').mockResolvedValueOnce(user1);
-			jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true);
+			jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true as never);
 			jest.spyOn(authService, 'validateUser').mockResolvedValueOnce(user1);
 
 			expect(await authService.login(credentials)).toEqual('token');
@@ -88,7 +88,7 @@ describe('Auth Service', () => {
 	describe('ValidateUser', () => {
 		it('should return the user entity if the credentials match', async () => {
 			jest.spyOn(userService, 'getUserByUsername').mockResolvedValueOnce(user1);
-			jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true);
+			jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true as never);
 
 			expect(await authService.validateUser('username', 'password')).toBeInstanceOf(UserEntity);
 		});
@@ -102,7 +102,7 @@ describe('Auth Service', () => {
 					validated: true,
 				}),
 			);
-			jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(false);
+			jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(false as never);
 
 			try {
 				await authService.validateUser('username', 'incorrectPassword');
