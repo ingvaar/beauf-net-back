@@ -70,17 +70,6 @@ describe('Users', () => {
 			});
 	});
 
-	it(`/GET /users/{id}`, () => {
-		jest.spyOn(userRepository, 'findOne').mockResolvedValue(user1Entity);
-
-		return request(app.getHttpServer())
-			.get('/users/1')
-			.expect(200)
-			.expect({
-				user1
-			});
-	});
-
 	afterAll(async () => {
 		await app.close();
 	});
