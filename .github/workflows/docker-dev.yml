@@ -26,3 +26,9 @@ jobs:
 
     - name: Push the Docker image to Registry
       run: docker push registry.asgaard.fr/beauf-net-api:dev
+
+    - uses: danielr1996/kubectl-action@1.0.0
+      name: Deploy
+      with:
+        kubeconfig: ${{ secrets.K8S_CONFIG_BEAUFNET }}
+        args: rollout restart deploy/beauf-net-api-deployment
