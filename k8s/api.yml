@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: beauf-net-api-configmap
+  namespace: beauf-net
+data:
+  PORT: "5000"
+  POSTGRES_HOST: postgres
+  POSTGRES_DB: "{{ postgres_db }}"
+  POSTGRES_PORT: "5432"
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: beauf-net-api-secret
+  namespace: beauf-net
+type: opaque
+data:
+  SECRET: "{{ secret | b64encode | regex_replace('\n', '') }}"
+  POSTGRES_USERNAME: "{{ postgres_user | b64encode | regex_replace('\n', '') }}"
+  POSTGRES_PASSWORD: "{{ postgres_pass | b64encode | regex_replace('\n', '') }}"
+  ADMIN_USERNAME: "{{ admin_user | b64encode | regex_replace('\n', '') }}"
+  ADMIN_PASSWORD: "{{ admin_pass | b64encode | regex_replace('\n', '') }}"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beauf-net-api-deployment
+  namespace: beauf-net
+  labels:
+    app: beauf-net-api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 120
+  selector:
+    matchLabels:
+      app: beauf-net-api
+  template:
+    metadata:
+      labels:
+        app: beauf-net-api
+    spec:
+      containers:
+      - name: beauf-net-api
+        image: registry.asgaard.fr/beauf-net-api:dev
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: beauf-net-api-configmap
+        - secretRef:
+            name: beauf-net-api-secret
+      imagePullSecrets:
+      - name: registry-key
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: beauf-net-api-service
+  namespace: beauf-net
+spec:
+  selector:
+    app: beauf-net-api
+  ports:
+  - port: 5000
+    targetPort: 5000
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: beauf-net-api-ingress
+  namespace: beauf-net
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - secretName: beauf-net-api-tls
+      hosts:
+      - api.beauf.net
+  rules:
+  - host: api.beauf.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: beauf-net-api-service
+          servicePort: 5000

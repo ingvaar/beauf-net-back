@@ -1,0 +1,66 @@
+- name: Installing beauf.net backend
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    secret: secret
+    admin_user: admin
+    admin_pass: pass
+    postgres_db: db
+    postgres_user: user
+    postgres_pass: pass
+    docker_config: config
+    storage_hostname: server
+  tasks:
+
+    - name: Run whoami without become.
+      command: whoami
+      changed_when: false
+      become: false
+      register: whoami
+
+    - name: Create beauf-net namespace
+      command: >-
+        kubectl create namespace beauf-net
+      changed_when: true
+      register: out
+      failed_when: "'Failed' in out.stderr"
+
+    - name: Copy registry-service file
+      template:
+        src: "registry-service.yml"
+        dest: "/tmp/registry-service.yml"
+        owner: "{{ whoami.stdout }}"
+        group: "{{ whoami.stdout }}"
+        mode: 0644
+
+    - name: Apply registry-service file
+      command: >-
+        kubectl apply -f /tmp/registry-service.yml
+      changed_when: true
+
+    - name: Copy postgres file
+      template:
+        src: "postgres.yml"
+        dest: "/tmp/postgres.yml"
+        owner: "{{ whoami.stdout }}"
+        group: "{{ whoami.stdout }}"
+        mode: 0644
+
+    - name: Apply postgres file
+      command: >-
+        kubectl apply -f /tmp/postgres.yml
+      changed_when: true
+
+    - name: Copy api file
+      template:
+        src: "api.yml"
+        dest: "/tmp/api.yml"
+        owner: "{{ whoami.stdout }}"
+        group: "{{ whoami.stdout }}"
+        mode: 0644
+
+    - name: Apply api file
+      command: >-
+        kubectl apply -f /tmp/api.yml
+      changed_when: true
