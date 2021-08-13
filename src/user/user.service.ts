@@ -11,7 +11,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { classToPlain } from 'class-transformer';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 
 import { Role } from '../auth/roles/role.enum';
 import { Pagination } from '../common/pagination';

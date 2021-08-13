@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 
-import { Public } from '../auth/auth.decorator';
 import { ParseObjectIDPipe } from '../common/objectID.pipe';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
