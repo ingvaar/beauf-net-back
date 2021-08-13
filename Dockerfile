@@ -1,13 +1,37 @@
-FROM node:15-alpine
+# ---- Base Node ----
 
-WORKDIR /usr/src/app
+FROM node:16-alpine AS base
+WORKDIR /app
+
+# ---- Dependencies ----
+FROM base AS dependencies
+
+COPY yarn.lock ./
 
 COPY package.json ./
 
 RUN yarn install
 
-COPY . .
+# ---- Copy Files/Build ----
+FROM dependencies AS build
+
+WORKDIR /app
+
+COPY src /app
+
+RUN yarn build
+
+# --- Release with Alpine ----
+FROM node:16-alpine AS release
+
+WORKDIR /app
+
+COPY --from=dependencies /app/package.json ./
+
+RUN yarn install --prod
+
+COPY --from=build /app ./
 
 EXPOSE 5000
 
-ENTRYPOINT yarn run start:dev
+ENTRYPOINT yarn run start
