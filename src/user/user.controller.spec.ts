@@ -1,3 +1,4 @@
+import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { Role } from '../auth/roles/role.enum';
@@ -70,17 +71,46 @@ describe('User Controller', () => {
 	});
 
 	describe('Post user', () => {
-		it('should post a user', async () => {
+		it('should post a user while being admin', async () => {
 			jest.spyOn(userService, 'saveUser').mockResolvedValue(user1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
 
 			const newUser = {
 				username: 'newUsername',
 				password: 'newPassword',
 			} as UserCreationDto;
 
-			const result = await controller.postUser(newUser);
+			const result = await controller.postUser(mockRequest, newUser);
 
 			expect(result).toStrictEqual(user1);
+		});
+
+		it('should throw while trying to post an user without being admin', async () => {
+			jest.spyOn(userService, 'saveUser').mockResolvedValue(user1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.User,
+				},
+			} as RequestWithUser;
+
+			const newUser = {
+				username: 'newUsername',
+				password: 'newPassword',
+			} as UserCreationDto;
+
+			try {
+				await controller.postUser(mockRequest, newUser);
+			} catch (error) {
+				expect(error).toBeInstanceOf(UnauthorizedException);
+			}
 		});
 	});
 
