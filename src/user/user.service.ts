@@ -121,7 +121,11 @@ export class UserService implements OnApplicationBootstrap {
 		});
 	}
 
-	public async saveUser(newUser: UserCreationDto): Promise<UserEntity> {
+	public async saveUser(newUser: UserCreationDto, request: RequestWithUser): Promise<UserEntity> {
+		if (request.user.role != Role.Admin) {
+			throw new UnauthorizedException("User is not admin");
+		}
+
 		let toSave = Object.assign(new UserEntity(), newUser);
 		toSave.password = await bcrypt.hash(toSave.password, 10);
 
@@ -136,8 +140,6 @@ export class UserService implements OnApplicationBootstrap {
 		}
 
 		toSave = await this.userRepository.save(toSave);
-
-		const token = uuidv4();
 
 		return toSave;
 	}

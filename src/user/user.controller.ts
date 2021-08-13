@@ -33,10 +33,12 @@ export class UserController {
 		return this.userService.getUser(id, request);
 	}
 
-	@Public()
 	@Post()
-	postUser(@Body() createUser: UserCreationDto): Promise<UserEntity> {
-		return this.userService.saveUser(createUser);
+	postUser(
+		@Req() request: RequestWithUser,
+		@Body() createUser: UserCreationDto
+		): Promise<UserEntity> {
+		return this.userService.saveUser(createUser, request);
 	}
 
 	@Patch(':id')

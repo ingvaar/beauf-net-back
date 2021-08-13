@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { request } from 'express';
 import { Repository } from 'typeorm';
 
 import { Role } from '../auth/roles/role.enum';
@@ -213,10 +214,28 @@ describe('User Service', () => {
 		});
 	});
 
+	describe('onApplicationBootstrap', () => {
+		it('should do nothing if admin already exists', async function () {
+			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
+			process.env = Object.assign(process.env, { ADMIN_USERNAME: user1.username });
+
+			const result = await userService.onApplicationBootstrap();
+
+			expect(result).toBeUndefined();
+		});
+	});
+
 	describe('save user', () => {
 		it('should be able to save a user with user role', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser
 
 			const newUser = {
 				username: 'username',
@@ -225,7 +244,7 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserCreationDto;
 
-			const result = await userService.saveUser(newUser);
+			const result = await userService.saveUser(newUser, mockRequest);
 
 			expect(result).toBeDefined();
 		});
@@ -234,6 +253,13 @@ describe('User Service', () => {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser
+
 			const newUser = {
 				username: 'username',
 				password: 'password',
@@ -241,13 +267,20 @@ describe('User Service', () => {
 				role: Role.Admin,
 			} as UserCreationDto;
 
-			const result = await userService.saveUser(newUser);
+			const result = await userService.saveUser(newUser, mockRequest);
 
 			expect(result).toBeDefined();
 		});
 
 		it('should throw if a user with the same username already exist', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser
 
 			const newUser = {
 				username: 'username',
@@ -257,7 +290,7 @@ describe('User Service', () => {
 			} as UserCreationDto;
 
 			try {
-				await userService.saveUser(newUser);
+				await userService.saveUser(newUser, mockRequest);
 			} catch (error) {
 				expect(error).toBeInstanceOf(ConflictException);
 			}
@@ -267,6 +300,13 @@ describe('User Service', () => {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
 
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser
+
 			const newUser = {
 				username: 'username',
 				password: 'password',
@@ -275,11 +315,35 @@ describe('User Service', () => {
 			} as UserCreationDto;
 
 			try {
-				await userService.saveUser(newUser);
+				await userService.saveUser(newUser, mockRequest);
 			} catch (error) {
 				expect(error).toBeInstanceOf(ConflictException);
 			}
 		});
+	});
+
+	it('should throw if user while trying to save a new user without being admin', async function () {
+		jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
+		jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
+
+		const mockRequest = {
+			user: {
+				id: '1',
+				role: Role.User,
+			},
+		} as RequestWithUser
+
+		const newUser = {
+			username: 'username',
+			password: 'password',
+			email: 'test@provider.com',
+		} as UserCreationDto;
+
+		try {
+			await userService.saveUser(newUser, mockRequest);
+		} catch (error) {
+			expect(error).toBeInstanceOf(UnauthorizedException);
+		}
 	});
 
 	describe('patch user', () => {
