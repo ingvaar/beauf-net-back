@@ -8,7 +8,7 @@ FROM base AS dependencies
 
 COPY yarn.lock ./
 
-COPY package.json ./
+COPY *.json ./
 
 RUN yarn install
 
