@@ -31,7 +31,9 @@ export class UserService implements OnApplicationBootstrap {
 		const adminName = process.env.ADMIN_USERNAME || "admin";
 		let adminPassword: string;
 
-		if ((await this.userRepository.findOne({ username: adminName })) != null) {
+		const user = await this.userRepository.findOne({ username: adminName })
+		if (user != undefined) {
+			Logger.log(`Admin already created.`)
 			return;
 		}
 
@@ -48,7 +50,12 @@ export class UserService implements OnApplicationBootstrap {
 			role: Role.Admin,
 			email: ""
 		});
-		await this.userRepository.save(toSave);
+
+		try {
+			await this.userRepository.save(toSave);
+		} catch(error) {
+			Logger.warn(`Cannot create admin: ${error}`)
+		}
 	}
 
 	private makePassword(length: number) {

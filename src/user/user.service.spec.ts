@@ -1,12 +1,12 @@
 import {
 	ConflictException,
 	ForbiddenException,
+	Logger,
 	NotFoundException,
 	UnauthorizedException,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { request } from 'express';
 import { Repository } from 'typeorm';
 
 import { Role } from '../auth/roles/role.enum';
@@ -216,12 +216,18 @@ describe('User Service', () => {
 
 	describe('onApplicationBootstrap', () => {
 		it('should do nothing if admin already exists', async function () {
-			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
-			process.env = Object.assign(process.env, { ADMIN_USERNAME: user1.username });
+			const admin = Object.assign(new UserEntity(), {
+				username: 'admin',
+				id: '1',
+				role: Role.Admin,
+				password: 'password',
+			});
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(admin);
+			const consoleSpy = jest.spyOn(Logger, 'log');
 
-			const result = await userService.onApplicationBootstrap();
+			await userService.onApplicationBootstrap();
 
-			expect(result).toBeUndefined();
+			expect(consoleSpy.mock.calls[0][0]).toContain("Admin already created.");
 		});
 	});
 
