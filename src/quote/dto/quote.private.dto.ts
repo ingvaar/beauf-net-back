@@ -1,21 +1,24 @@
-import { AutoMap } from "@automapper/classes";
+import { QuoteEntity } from "../quote.entity";
 
 export class QuotePrivateDto {
-	@AutoMap()
+	constructor(entity: QuoteEntity) {
+		this.id = entity.id!;
+		this.text = entity.text!;
+		this.source = entity.source;
+		this.author = entity.author;
+		this.createdAt = entity.createdAt!;
+		this.updatedAt = entity.updatedAt!
+	}
+
 	id!: string;
 
-	@AutoMap()
 	text!: string;
 
-	@AutoMap()
 	source?: string;
 
-	@AutoMap()
 	author?: string;
 
-	@AutoMap()
 	createdAt!: string;
 
-	@AutoMap()
 	updatedAt?: string;
 }
