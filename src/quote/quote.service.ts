@@ -7,16 +7,23 @@ import { QuotePatchDto } from "./dto/quote.patch.dto";
 import { QuotePrivateDto } from "./dto/quote.private.dto";
 import { QuotePublicDto } from "./dto/quote.public.dto";
 import { QuoteEntity } from "./quote.entity";
+import { Mapper } from "@automapper/types";
+import { InjectMapper } from "@automapper/nestjs";
 
 @Injectable()
 export class QuoteService {
 	constructor(
 		@InjectRepository(QuoteEntity)
-		private readonly quoteRepository: Repository<QuoteEntity>
+		private readonly quoteRepository: Repository<QuoteEntity>,
+		@InjectMapper() private readonly mapper: Mapper
 	) { }
 
 	public async addQuote(newQuote: QuoteCreationDto): Promise<QuotePublicDto> {
-		return new QuotePublicDto();
+		// TODO: Anti-spam security (captcha, Raph's way, etc...)
+
+		let toSave = Object.assign(new QuoteEntity(), newQuote);
+
+		return this.mapper.map(await this.quoteRepository.save(toSave), QuotePublicDto, QuoteEntity);
 	}
 
 	public async getQuotes(

@@ -4,6 +4,7 @@ import { UserModule } from "../user/user.module";
 import { QuoteController } from "./quote.controller";
 import { QuoteEntity } from "./quote.entity";
 import { QuoteService } from "./quote.service";
+import { QuoteProfile } from "./quote.profile";
 
 @Module({
 	imports: [
@@ -11,6 +12,6 @@ import { QuoteService } from "./quote.service";
 		UserModule,
 	],
 	controllers: [QuoteController],
-	providers: [QuoteService]
+	providers: [QuoteService, QuoteProfile]
 })
 export class QuoteModule { }
