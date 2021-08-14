@@ -7,15 +7,12 @@ import { QuotePatchDto } from "./dto/quote.patch.dto";
 import { QuotePrivateDto } from "./dto/quote.private.dto";
 import { QuotePublicDto } from "./dto/quote.public.dto";
 import { QuoteEntity } from "./quote.entity";
-import { Mapper } from "@automapper/types";
-import { InjectMapper } from "@automapper/nestjs";
 
 @Injectable()
 export class QuoteService {
 	constructor(
 		@InjectRepository(QuoteEntity)
 		private readonly quoteRepository: Repository<QuoteEntity>,
-		@InjectMapper() private readonly mapper: Mapper
 	) { }
 
 	public async addQuote(newQuote: QuoteCreationDto): Promise<QuotePublicDto> {
@@ -23,7 +20,7 @@ export class QuoteService {
 
 		let toSave = Object.assign(new QuoteEntity(), newQuote);
 
-		return this.mapper.map(await this.quoteRepository.save(toSave), QuotePublicDto, QuoteEntity);
+		return new QuotePublicDto(await this.quoteRepository.save(toSave));
 	}
 
 	public async getQuotes(
@@ -52,21 +49,21 @@ export class QuoteService {
 	}
 
 	public async getQuote(id: string): Promise<QuotePublicDto> {
-		return new QuotePublicDto();
+		return new QuotePublicDto(new QuoteEntity());
 	}
 
 	public async getPrivateQuote(request: RequestWithUser, id: string): Promise<QuotePrivateDto> {
-		return new QuotePrivateDto();
+		return new QuotePrivateDto(new QuoteEntity());
 	}
 
 	public async deleteQuote(request: RequestWithUser, id: string) {
 	}
 
 	public async updateQuote(request: RequestWithUser, id: string, updatedQuote: QuotePatchDto): Promise<QuotePrivateDto> {
-		return new QuotePrivateDto();
+		return new QuotePrivateDto(new QuoteEntity());
 	}
 
 	public async validateQuote(request: RequestWithUser, id: string): Promise<QuotePrivateDto> {
-		return new QuotePrivateDto();
+		return new QuotePrivateDto(new QuoteEntity());
 	}
 }
