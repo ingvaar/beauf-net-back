@@ -88,4 +88,18 @@ describe('Quote Service', () => {
 			expect(await quoteService.addQuote(newQuote)).toStrictEqual(quote1Public);
 		});
 	});
+
+	describe('get Quote', () => {
+		it('should return the corresponding quote', async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+
+			expect(await quoteService.getQuote('1')).toStrictEqual(quote1Public);
+		});
+
+		it('should fail because quote do not exist', async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockRejectedValueOnce(new Error('Not found'));
+
+			expect(await quoteService.getQuote('1')).toStrictEqual(quote1Public);
+		});
+	});
 });
