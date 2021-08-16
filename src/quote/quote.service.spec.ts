@@ -26,6 +26,8 @@ describe('Quote Service', () => {
 		source: "Bob",
 		createdAt: "123"
 	});
+	const quote2Public = new QuotePublicDto(quote2);
+	const quote2Private = new QuotePrivateDto(quote2);
 
 	beforeEach(async () => {
 		const module = await Test.createTestingModule({
@@ -100,6 +102,41 @@ describe('Quote Service', () => {
 			jest.spyOn(quoteRepository, 'findOneOrFail').mockRejectedValueOnce(new Error('Not found'));
 
 			expect(await quoteService.getQuote('1')).toStrictEqual(quote1Public);
+		});
+	});
+
+	describe('get Quotes', () => {
+		it('should return quotes', async function () {
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1, quote2]);
+
+			expect(await quoteService.getQuotes(1, 50)).toStrictEqual({
+				perPage: 50,
+				page: 1,
+				count: 2,
+				data: [quote1Public, quote2Public]
+			});
+		});
+
+		it('should return page 1 of size 1', async function () {
+			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote1]);
+
+			expect(await quoteService.getQuotes(1, 1)).toStrictEqual({
+				perPage: 1,
+				page: 1,
+				count: 1,
+				data: [quote1Public]
+			});
+		});
+
+		it('should return page 2 of size 1', async function () {
+			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote2]);
+
+			expect(await quoteService.getQuotes(1, 2)).toStrictEqual({
+				perPage: 1,
+				page: 2,
+				count: 1,
+				data: [quote2Public]
+			});
 		});
 	});
 });
