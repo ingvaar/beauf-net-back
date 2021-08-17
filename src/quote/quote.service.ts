@@ -7,8 +7,8 @@ import { QuotePatchDto } from "./dto/quote.patch.dto";
 import { QuotePrivateDto } from "./dto/quote.private.dto";
 import { QuotePublicDto } from "./dto/quote.public.dto";
 import { QuoteEntity } from "./quote.entity";
-import { Pagination } from "src/common/pagination";
-import { Role } from "src/auth/roles/role.enum";
+import { Pagination } from "../common/pagination";
+import { Role } from "../auth/roles/role.enum";
 
 @Injectable()
 export class QuoteService {
