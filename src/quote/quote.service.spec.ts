@@ -175,7 +175,32 @@ describe('Quote Service', () => {
 	});
 
 	describe("update quote", () => {
+		it("update quote as admin", async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
 
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.updateQuote(mockRequest, '1', {})).toStrictEqual(quote1Private);
+		});
+
+		it("update quote as user", async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.User,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.updateQuote(mockRequest, '1', {})).toThrowError(UnauthorizedException);
+		});
 	});
 
 	describe("get private quote", () => {
