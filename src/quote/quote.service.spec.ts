@@ -207,7 +207,76 @@ describe('Quote Service', () => {
 	});
 
 	describe("get unvalidated quotes", () => {
+		it('should return private quotes', async function () {
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1, quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 50)).toStrictEqual({
+				perPage: 50,
+				page: 1,
+				count: 2,
+				data: [quote1Private, quote2Private]
+			});
+		});
+
+		it('should return page 1 of size 1', async function () {
+			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote1]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 1)).toStrictEqual({
+				perPage: 1,
+				page: 1,
+				count: 1,
+				data: [quote1Private]
+			});
+		});
+
+		it('should return page 2 of size 1', async function () {
+			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 2)).toStrictEqual({
+				perPage: 1,
+				page: 2,
+				count: 1,
+				data: [quote2Public]
+			});
+		});
+
+		it('should throw', async function () {
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1, quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.User,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 50)).toThrowError(UnauthorizedException);
+		});
 	});
 
 	describe("validate quote", () => {
