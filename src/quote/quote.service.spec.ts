@@ -280,6 +280,31 @@ describe('Quote Service', () => {
 	});
 
 	describe("validate quote", () => {
+		it('should throw', async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
 
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.User,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.validateQuote(mockRequest, '1')).toThrowError(UnauthorizedException);
+		});
+
+		it('should return validated quote', async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.User,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.validateQuote(mockRequest, '1')).toStrictEqual(quote1Private);
+		});
 	});
 });
