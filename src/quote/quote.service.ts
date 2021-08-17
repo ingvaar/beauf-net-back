@@ -7,6 +7,7 @@ import { QuotePatchDto } from "./dto/quote.patch.dto";
 import { QuotePrivateDto } from "./dto/quote.private.dto";
 import { QuotePublicDto } from "./dto/quote.public.dto";
 import { QuoteEntity } from "./quote.entity";
+import { Pagination } from "src/common/pagination";
 
 @Injectable()
 export class QuoteService {
@@ -27,12 +28,16 @@ export class QuoteService {
 		page: number,
 		perPage: number
 	): Promise<{ page: number; perPage: number; total: number; data: Array<QuotePublicDto> }> {
-		return {
-			page: page,
-			perPage: perPage,
-			total: 0,
-			data: new Array
-		};
+		const pagination = Pagination.check(page, perPage);
+		const total = await this.quoteRepository.count();
+		const result = await this.quoteRepository.find({
+			skip: (pagination.page - 1) * pagination.perPage,
+			take: pagination.perPage,
+		});
+		const datas = new Array<QuotePublicDto>();
+		result.forEach(entity => datas.push(new QuotePublicDto(entity)));
+
+		return { page: pagination.page, perPage: pagination.perPage, total: total, data: datas };
 	}
 
 	public async getUnvalidatedQuotes(
