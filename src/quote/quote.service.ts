@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RequestWithUser } from "../user/user.utils";
 import { Repository } from "typeorm";
@@ -34,6 +34,7 @@ export class QuoteService {
 		const result = await this.quoteRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
+			where: { validated: true }
 		});
 		const datas = new Array<QuotePublicDto>();
 		result.forEach(entity => datas.push(new QuotePublicDto(entity)));
@@ -54,6 +55,7 @@ export class QuoteService {
 		const result = await this.quoteRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
+			where: { validated: false }
 		});
 		const datas = new Array<QuotePrivateDto>();
 		result.forEach(entity => datas.push(new QuotePublicDto(entity)));
@@ -61,12 +63,29 @@ export class QuoteService {
 		return { page: pagination.page, perPage: pagination.perPage, total: total, data: datas };
 	}
 
+	private async getQuoteEntity(id: string): Promise<QuoteEntity> {
+		try {
+			return await this.quoteRepository.findOneOrFail(id);
+		} catch(error) {
+			throw new NotFoundException(`no quote with id ${id} found`);
+		}
+	}
+
 	public async getQuote(id: string): Promise<QuotePublicDto> {
-		return new QuotePublicDto(new QuoteEntity());
+		const quote = await this.getQuoteEntity(id);
+
+		if (quote.validated == false) {
+			throw new UnauthorizedException(`quote is not validated`);
+		}
+
+		return new QuotePublicDto(quote);
 	}
 
 	public async getPrivateQuote(request: RequestWithUser, id: string): Promise<QuotePrivateDto> {
-		return new QuotePrivateDto(new QuoteEntity());
+		if (request.user.role != Role.Admin) {
+			throw new UnauthorizedException(`user is not admin`);
+		}
+		return new QuotePrivateDto(await this.getQuoteEntity(id));
 	}
 
 	public async deleteQuote(request: RequestWithUser, id: string) {
