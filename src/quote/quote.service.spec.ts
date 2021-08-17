@@ -1,8 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Role } from 'src/auth/roles/role.enum';
-import { RequestWithUser } from 'src/user/user.utils';
+import { Role } from '../auth/roles/role.enum';
+import { RequestWithUser } from '../user/user.utils';
 import { Repository } from 'typeorm';
 
 import { QuoteCreationDto } from './dto/quote.creation.dto';
