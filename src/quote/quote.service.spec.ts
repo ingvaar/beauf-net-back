@@ -1,5 +1,8 @@
+import { UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Role } from 'src/auth/roles/role.enum';
+import { RequestWithUser } from 'src/user/user.utils';
 import { Repository } from 'typeorm';
 
 import { QuoteCreationDto } from './dto/quote.creation.dto';
@@ -108,6 +111,7 @@ describe('Quote Service', () => {
 	describe('get Quotes', () => {
 		it('should return quotes', async function () {
 			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1, quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
 			expect(await quoteService.getQuotes(1, 50)).toStrictEqual({
 				perPage: 50,
@@ -119,6 +123,7 @@ describe('Quote Service', () => {
 
 		it('should return page 1 of size 1', async function () {
 			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote1]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
 
 			expect(await quoteService.getQuotes(1, 1)).toStrictEqual({
 				perPage: 1,
@@ -130,6 +135,7 @@ describe('Quote Service', () => {
 
 		it('should return page 2 of size 1', async function () {
 			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
 
 			expect(await quoteService.getQuotes(1, 2)).toStrictEqual({
 				perPage: 1,
@@ -138,5 +144,49 @@ describe('Quote Service', () => {
 				data: [quote2Public]
 			});
 		});
+	});
+
+	describe("delete quote", () => {
+		it("delete quote as admin", async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.deleteQuote(mockRequest, '1')).toHaveReturned();
+		});
+
+		it("delete quote as user", async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.User,
+				},
+			} as RequestWithUser;
+
+			expect(await quoteService.deleteQuote(mockRequest, '1')).toThrowError(UnauthorizedException);
+		});
+	});
+
+	describe("update quote", () => {
+
+	});
+
+	describe("get private quote", () => {
+
+	});
+
+	describe("get unvalidated quotes", () => {
+
+	});
+
+	describe("validate quote", () => {
+
 	});
 });
