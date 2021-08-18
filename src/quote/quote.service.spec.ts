@@ -216,7 +216,58 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			await expect(quoteService.updateQuote(mockRequest, '1', {})).resolves.toThrowError(UnauthorizedException);
+			await expect(quoteService.updateQuote(mockRequest, '1', {})).rejects.toThrow(UnauthorizedException);
+		});
+
+		it("update quote author", async function () {
+			const toUpdateAuthor = Object.assign(new QuoteEntity(), quote1);
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(toUpdateAuthor);
+			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(toUpdateAuthor);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			const toUpdateAuthorPrivate = new QuotePrivateDto(toUpdateAuthor);
+			toUpdateAuthorPrivate.author = "new";
+			await expect(quoteService.updateQuote(mockRequest, '1', { author: "new" })).resolves.toStrictEqual(toUpdateAuthorPrivate);
+		});
+
+		it("update quote text", async function () {
+			const toUpdateText = Object.assign(new QuoteEntity(), quote1);
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(toUpdateText);
+			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(toUpdateText);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			const toUpdateTextPrivate = new QuotePrivateDto(toUpdateText);
+			toUpdateTextPrivate.text = "new";
+			await expect(quoteService.updateQuote(mockRequest, '1', { text: "new" })).resolves.toStrictEqual(toUpdateTextPrivate);
+		});
+
+		it("update quote source", async function () {
+			const toUpdateSource = Object.assign(new QuoteEntity(), quote1);
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(toUpdateSource);
+			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(toUpdateSource);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			const toUpdateSourcePrivate = new QuotePrivateDto(toUpdateSource);
+			toUpdateSourcePrivate.source = "new";
+			await expect(quoteService.updateQuote(mockRequest, '1', { source: "new" })).resolves.toStrictEqual(toUpdateSourcePrivate);
 		});
 	});
 

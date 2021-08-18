@@ -97,7 +97,24 @@ export class QuoteService {
 	}
 
 	public async updateQuote(request: RequestWithUser, id: string, updatedQuote: QuotePatchDto): Promise<QuotePrivateDto> {
-		return new QuotePrivateDto(new QuoteEntity());
+		if (request.user.role != Role.Admin) {
+			throw new UnauthorizedException(`user is not admin`);
+		}
+		const toUpdate = await this.getQuoteEntity(id);
+
+		if (updatedQuote.author != undefined) {
+			toUpdate.author = updatedQuote.author;
+		}
+
+		if (updatedQuote.source != undefined) {
+			toUpdate.source = updatedQuote.source;
+		}
+
+		if (updatedQuote.text != undefined) {
+			toUpdate.text = updatedQuote.text;
+		}
+
+		return new QuotePrivateDto(await this.quoteRepository.save(toUpdate));
 	}
 
 	public async validateQuote(request: RequestWithUser, id: string): Promise<QuotePrivateDto> {
