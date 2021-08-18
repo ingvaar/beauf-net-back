@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsOptional } from 'class-validator';
+import { Role } from '../../auth/roles/role.enum';
 
 export class UserPatchDto {
 	@ApiPropertyOptional()
@@ -18,6 +19,10 @@ export class UserPatchDto {
 	@ApiPropertyOptional()
 	@IsOptional()
 	publicKey?: string;
+
+	@ApiPropertyOptional()
+	@IsOptional()
+	role?: Role;
 
 	@ApiPropertyOptional()
 	@IsOptional()

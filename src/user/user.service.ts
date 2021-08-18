@@ -16,6 +16,8 @@ import { Role } from '../auth/roles/role.enum';
 import { Pagination } from '../common/pagination';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
+import { UserPrivateDto } from './dto/user.private.dto';
+import { UserPublicDto } from './dto/user.public.dto';
 import { UserEntity } from './user.entity';
 import { RequestWithUser } from './user.utils';
 
@@ -52,7 +54,7 @@ export class UserService implements OnApplicationBootstrap {
 
 		try {
 			await this.userRepository.save(toSave);
-		} catch(error) {
+		} catch (error) {
 			Logger.warn(`Cannot create admin: ${error}`)
 		}
 	}
@@ -71,17 +73,20 @@ export class UserService implements OnApplicationBootstrap {
 	public async getUsers(
 		page: number,
 		perPage: number,
-	): Promise<{ page: number; perPage: number; total: number; users: UserEntity[] }> {
+	): Promise<{ page: number; perPage: number; total: number; data: UserPublicDto[] }> {
 		const pagination = Pagination.check(page, perPage);
 		const total = await this.userRepository.count();
 		const result = await this.userRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
 		});
-		return { page: pagination.page, perPage: pagination.perPage, total: total, users: result };
+		const datas = new Array<UserPublicDto>();
+		result.forEach(entity => datas.push(new UserPublicDto(entity)));
+
+		return { page: pagination.page, perPage: pagination.perPage, total: total, data: datas };
 	}
 
-	public async getUser(id: string, request?: RequestWithUser): Promise<UserEntity> {
+	public async getUser(id: string, request?: RequestWithUser): Promise<UserPublicDto | UserPrivateDto> {
 		const dbUser = await this.userRepository.findOneOrFail(id).catch(() => {
 			throw new NotFoundException(`User with id ${id} not found`);
 		});
@@ -115,27 +120,25 @@ export class UserService implements OnApplicationBootstrap {
 		return user.role;
 	}
 
-	public getUserByUsername(username: string): Promise<UserEntity> {
-		return this.userRepository.findOneOrFail({ username: username }).catch(() => {
+	public async getUserByUsername(username: string): Promise<UserEntity> {
+		return await this.userRepository.findOneOrFail({ username: username }).catch(() => {
 			throw new NotFoundException(`User with username ${username} not found`);
 		});
 	}
 
-	public getUserByEmail(email: string): Promise<UserEntity> {
-		return this.userRepository.findOneOrFail({ email: email }).catch(() => {
+	public async getUserByEmail(email: string): Promise<UserEntity> {
+		return await this.userRepository.findOneOrFail({ email: email }).catch(() => {
 			throw new NotFoundException(`User with email ${email} not found`);
 		});
 	}
 
-	public async saveUser(newUser: UserCreationDto, request: RequestWithUser): Promise<UserEntity> {
+	public async saveUser(newUser: UserCreationDto, request: RequestWithUser): Promise<UserPrivateDto> {
 		if (request.user.role != Role.Admin) {
 			throw new UnauthorizedException("User is not admin");
 		}
 
 		let toSave = Object.assign(new UserEntity(), newUser);
 		toSave.password = await bcrypt.hash(toSave.password, 10);
-
-		toSave.role = Role.User;
 
 		if ((await this.userRepository.findOne({ username: newUser.username })) != null) {
 			throw new ConflictException(`User with username ${newUser.username} already exists`);
@@ -145,17 +148,15 @@ export class UserService implements OnApplicationBootstrap {
 			throw new ConflictException(`User with email ${newUser.email} already exists`);
 		}
 
-		toSave = await this.userRepository.save(toSave);
-
-		return toSave;
+		return new UserPrivateDto(await this.userRepository.save(toSave));
 	}
 
-	public async patchUser(request: RequestWithUser, id: string, toPatch: UserPatchDto): Promise<UserEntity> {
+	public async patchUser(request: RequestWithUser, id: string, toPatch: UserPatchDto): Promise<UserPrivateDto> {
 		const dbUser = await this.userRepository.findOne(id);
 		if (!dbUser) {
 			throw new NotFoundException(`User with id ${id} not found`);
 		}
-		if (dbUser.id != request.user.id) {
+		if (dbUser.id != request.user.id && request.user.role != Role.Admin) {
 			throw new UnauthorizedException('Cannot modify another user`s account');
 		}
 		if (toPatch.password) {
@@ -173,25 +174,23 @@ export class UserService implements OnApplicationBootstrap {
 			throw new ConflictException(`User with email ${toPatch.email} already exists`);
 		}
 
-		await this.userRepository.save(updated);
+		if (request.user.role == Role.Admin && toPatch.role) {
+			dbUser.role = toPatch.role;
+		}
 
-		const privateUser = classToPlain(updated, { groups: ['private'] });
-		delete dbUser.password;
-
-		return Object.assign(privateUser, dbUser);
+		return new UserPrivateDto(await this.userRepository.save(updated));
 	}
 
-	public async deleteUser(request: RequestWithUser, id: string): Promise<{ deleted: number }> {
+	public async deleteUser(request: RequestWithUser, id: string) {
 		const userToRemove = await this.userRepository.findOne(id);
 
-		if (id != request.user.id) {
+		if (id != request.user.id && request.user.role != Role.Admin) {
 			throw new UnauthorizedException();
 		}
 		if (!userToRemove) {
 			throw new NotFoundException(`User with id ${id} not found`);
 		}
 		await this.userRepository.remove(userToRemove);
-		return { deleted: 1 };
 	}
 
 	public async userExist(userID: string): Promise<boolean> {
