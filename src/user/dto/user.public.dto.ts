@@ -1,12 +1,16 @@
-import { AutoMap } from '@automapper/classes';
+import { Role } from "src/auth/roles/role.enum";
+import { UserEntity } from "../user.entity";
 
 export class UserPublicDto {
-	@AutoMap()
+	constructor(userEntity: UserEntity) {
+		this.id = userEntity.id;
+		this.username = userEntity.username;
+		this.role = userEntity.role;
+	}
+
 	id?: string;
 
-	@AutoMap()
 	username?: string;
 
-	@AutoMap()
-	email?: string;
+	role!: Role;
 }
