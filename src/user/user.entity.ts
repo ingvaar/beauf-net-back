@@ -1,6 +1,4 @@
-import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
 import {
 	Column,
 	CreateDateColumn,
@@ -17,28 +15,22 @@ export class UserEntity {
 	@ApiProperty({
 		type: 'ObjectId',
 	})
-	@AutoMap()
 	id?: string;
 
 	@Column({
 		unique: true,
 	})
-	@AutoMap()
 	username?: string;
 
 	@Column({
 		unique: true,
 	})
-	@AutoMap()
 	email?: string;
 
 	@Column()
-	@Exclude({ toPlainOnly: true })
-	@AutoMap()
 	password?: string;
 
 	@Column()
-	@AutoMap()
 	role: Role = Role.User;
 
 	@CreateDateColumn({
@@ -46,7 +38,6 @@ export class UserEntity {
 		type: 'timestamp',
 		nullable: true,
 	})
-	@AutoMap()
 	createdAt?: string;
 
 	@UpdateDateColumn({
@@ -54,7 +45,5 @@ export class UserEntity {
 		type: 'timestamp',
 		nullable: true,
 	})
-	@Expose({ groups: ['private'] })
-	@AutoMap()
 	updatedAt?: string;
 }
