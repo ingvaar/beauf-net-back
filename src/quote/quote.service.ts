@@ -58,15 +58,15 @@ export class QuoteService {
 			where: { validated: false }
 		});
 		const datas = new Array<QuotePrivateDto>();
-		result.forEach(entity => datas.push(new QuotePublicDto(entity)));
+		result.forEach(entity => datas.push(new QuotePrivateDto(entity)));
 
 		return { page: pagination.page, perPage: pagination.perPage, total: total, data: datas };
 	}
 
-	private async getQuoteEntity(id: string): Promise<QuoteEntity> {
+	public async getQuoteEntity(id: string): Promise<QuoteEntity> {
 		try {
 			return await this.quoteRepository.findOneOrFail(id);
-		} catch(error) {
+		} catch (error) {
 			throw new NotFoundException(`no quote with id ${id} found`);
 		}
 	}
