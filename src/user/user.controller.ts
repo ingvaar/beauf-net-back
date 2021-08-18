@@ -28,7 +28,7 @@ export class UserController {
 	getUser(
 		@Req() request: RequestWithUser,
 		@Param('id', new ParseObjectIDPipe()) id: string,
-	): Promise<UserPublicDto> {
+	): Promise<UserPublicDto | UserPrivateDto> {
 		return this.userService.getUser(id, request);
 	}
 
@@ -53,7 +53,7 @@ export class UserController {
 	deleteUser(
 		@Req() request: RequestWithUser,
 		@Param('id', new ParseObjectIDPipe()) id: string,
-	): void {
+	) {
 		return this.userService.deleteUser(request, id);
 	}
 }
