@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from '../auth/roles/role.enum';
@@ -19,6 +19,7 @@ describe('Quote Service', () => {
 		id: '1',
 		text: "Quote 1",
 		source: "Michel",
+		validated: true,
 		createdAt: "123"
 	});
 	const quote1Public = new QuotePublicDto(quote1);
@@ -27,10 +28,20 @@ describe('Quote Service', () => {
 		id: '2',
 		text: "Quote 2",
 		source: "Bob",
+		validated: true,
 		createdAt: "123"
 	});
 	const quote2Public = new QuotePublicDto(quote2);
 	const quote2Private = new QuotePrivateDto(quote2);
+	const quoteUnvalidated = Object.assign(new QuoteEntity(), {
+		id: '3',
+		text: "Quote 2",
+		source: "Bob",
+		validated: false,
+		createdAt: "123"
+	});
+	const quoteUnvalidatedPublic = new QuotePublicDto(quoteUnvalidated);
+	const quoteUnvalidatedPrivate = new QuotePrivateDto(quoteUnvalidated);
 
 	beforeEach(async () => {
 		const module = await Test.createTestingModule({
@@ -67,7 +78,7 @@ describe('Quote Service', () => {
 				text: "Test"
 			} as QuoteCreationDto;
 
-			expect(await quoteService.addQuote(newQuote)).toStrictEqual(quote1Public);
+			await expect(quoteService.addQuote(newQuote)).resolves.toStrictEqual(quote1Public);
 		});
 
 		it('should save a new Quote with text and source', async function () {
@@ -78,7 +89,7 @@ describe('Quote Service', () => {
 				source: "source"
 			} as QuoteCreationDto;
 
-			expect(await quoteService.addQuote(newQuote)).toStrictEqual(quote1Public);
+			await expect(quoteService.addQuote(newQuote)).resolves.toStrictEqual(quote1Public);
 		});
 
 		it('should save a new Quote with text, source and author', async function () {
@@ -90,21 +101,27 @@ describe('Quote Service', () => {
 				author: "author"
 			} as QuoteCreationDto;
 
-			expect(await quoteService.addQuote(newQuote)).toStrictEqual(quote1Public);
+			await expect(quoteService.addQuote(newQuote)).resolves.toStrictEqual(quote1Public);
 		});
 	});
 
 	describe('get Quote', () => {
 		it('should return the corresponding quote', async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			quoteService.getQuoteEntity = jest.fn().mockReturnValueOnce(quote1);
 
-			expect(await quoteService.getQuote('1')).toStrictEqual(quote1Public);
+			await expect(quoteService.getQuote('1')).resolves.toStrictEqual(quote1Public);
 		});
 
 		it('should fail because quote do not exist', async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockRejectedValueOnce(new Error('Not found'));
+			quoteService.getQuoteEntity = jest.fn().mockRejectedValueOnce(new NotFoundException(`quote not found`));
 
-			expect(await quoteService.getQuote('1')).toStrictEqual(quote1Public);
+			await expect(quoteService.getQuote('1')).rejects.toThrow(NotFoundException);
+		});
+
+		it('should fail because quote is not valid', async function () {
+			quoteService.getQuoteEntity = jest.fn().mockReturnValueOnce(quoteUnvalidated);
+
+			await expect(quoteService.getQuote('1')).rejects.toThrow(UnauthorizedException);
 		});
 	});
 
@@ -113,34 +130,34 @@ describe('Quote Service', () => {
 			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1, quote2]);
 			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
-			expect(await quoteService.getQuotes(1, 50)).toStrictEqual({
+			await expect(quoteService.getQuotes(1, 50)).resolves.toStrictEqual({
 				perPage: 50,
 				page: 1,
-				count: 2,
+				total: 2,
 				data: [quote1Public, quote2Public]
 			});
 		});
 
 		it('should return page 1 of size 1', async function () {
-			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote1]);
-			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
-			expect(await quoteService.getQuotes(1, 1)).toStrictEqual({
+			await expect(quoteService.getQuotes(1, 1)).resolves.toStrictEqual({
 				perPage: 1,
 				page: 1,
-				count: 1,
+				total: 2,
 				data: [quote1Public]
 			});
 		});
 
 		it('should return page 2 of size 1', async function () {
-			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote2]);
-			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
-			expect(await quoteService.getQuotes(1, 2)).toStrictEqual({
+			await expect(quoteService.getQuotes(2, 1)).resolves.toStrictEqual({
 				perPage: 1,
 				page: 2,
-				count: 1,
+				total: 2,
 				data: [quote2Public]
 			});
 		});
@@ -157,7 +174,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.deleteQuote(mockRequest, '1')).toHaveReturned();
+			await expect(quoteService.deleteQuote(mockRequest, '1')).resolves.toBeUndefined();
 		});
 
 		it("delete quote as user", async function () {
@@ -170,7 +187,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.deleteQuote(mockRequest, '1')).toThrowError(UnauthorizedException);
+			await expect(quoteService.deleteQuote(mockRequest, '1')).rejects.toThrow(UnauthorizedException);
 		});
 	});
 
@@ -186,7 +203,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.updateQuote(mockRequest, '1', {})).toStrictEqual(quote1Private);
+			await expect(quoteService.updateQuote(mockRequest, '1', {})).resolves.toStrictEqual(quote1Private);
 		});
 
 		it("update quote as user", async function () {
@@ -199,7 +216,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.updateQuote(mockRequest, '1', {})).toThrowError(UnauthorizedException);
+			await expect(quoteService.updateQuote(mockRequest, '1', {})).resolves.toThrowError(UnauthorizedException);
 		});
 	});
 
@@ -214,7 +231,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.getPrivateQuote(mockRequest, '1')).toStrictEqual(quote1Private);
+			await expect(quoteService.getPrivateQuote(mockRequest, '1')).resolves.toStrictEqual(quote1Private);
 		});
 
 		it("get private quote as user", async function () {
@@ -227,7 +244,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.deleteQuote(mockRequest, '1')).toThrowError(UnauthorizedException);
+			await expect(await quoteService.deleteQuote(mockRequest, '1')).rejects.toThrowError(UnauthorizedException);
 		});
 	});
 
@@ -243,17 +260,17 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 50)).toStrictEqual({
+			await expect(quoteService.getUnvalidatedQuotes(mockRequest, 1, 50)).resolves.toStrictEqual({
 				perPage: 50,
 				page: 1,
-				count: 2,
+				total: 2,
 				data: [quote1Private, quote2Private]
 			});
 		});
 
 		it('should return page 1 of size 1', async function () {
-			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote1]);
-			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote1]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
 			const mockRequest = {
 				user: {
@@ -262,17 +279,17 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 1)).toStrictEqual({
+			await expect(quoteService.getUnvalidatedQuotes(mockRequest, 1, 1)).resolves.toStrictEqual({
 				perPage: 1,
 				page: 1,
-				count: 1,
+				total: 2,
 				data: [quote1Private]
 			});
 		});
 
 		it('should return page 2 of size 1', async function () {
-			jest.spyOn(quoteRepository, 'find').mockRejectedValueOnce([quote2]);
-			jest.spyOn(quoteRepository, 'count').mockResolvedValue(1);
+			jest.spyOn(quoteRepository, 'find').mockResolvedValueOnce([quote2]);
+			jest.spyOn(quoteRepository, 'count').mockResolvedValue(2);
 
 			const mockRequest = {
 				user: {
@@ -281,11 +298,11 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 2)).toStrictEqual({
+			await expect(quoteService.getUnvalidatedQuotes(mockRequest, 2, 1)).resolves.toStrictEqual({
 				perPage: 1,
 				page: 2,
-				count: 1,
-				data: [quote2Public]
+				total: 2,
+				data: [quote2Private]
 			});
 		});
 
@@ -300,7 +317,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.getUnvalidatedQuotes(mockRequest, 1, 50)).toThrowError(UnauthorizedException);
+			await expect(quoteService.getUnvalidatedQuotes(mockRequest, 1, 50)).rejects.toThrow(UnauthorizedException);
 		});
 	});
 
@@ -315,7 +332,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.validateQuote(mockRequest, '1')).toThrowError(UnauthorizedException);
+			await expect(quoteService.validateQuote(mockRequest, '1')).rejects.toThrow(UnauthorizedException);
 		});
 
 		it('should return validated quote', async function () {
@@ -329,7 +346,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			expect(await quoteService.validateQuote(mockRequest, '1')).toStrictEqual(quote1Private);
+			await expect(quoteService.validateQuote(mockRequest, '1')).resolves.toStrictEqual(quote1Private);
 		});
 	});
 });
