@@ -1,5 +1,3 @@
-import { classes } from '@automapper/classes';
-import { AutomapperModule } from '@automapper/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -27,10 +25,6 @@ import { UserModule } from './user/user.module';
 			entities: [join(__dirname, '**', '*.entity.{ts,js}')],
 			synchronize: true,
 			logging: false,
-		}),
-		AutomapperModule.forRoot({
-			options: [{ name: '', pluginInitializer: classes }],
-			singular: true,
 		}),
 		AuthModule,
 		UserModule,
