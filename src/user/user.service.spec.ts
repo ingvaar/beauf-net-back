@@ -12,6 +12,8 @@ import { Repository } from 'typeorm';
 import { Role } from '../auth/roles/role.enum';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
+import { UserPrivateDto } from './dto/user.private.dto';
+import { UserPublicDto } from './dto/user.public.dto';
 import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 import { RequestWithUser } from './user.utils';
@@ -26,12 +28,16 @@ describe('User Service', () => {
 		role: Role.Admin,
 		password: 'password',
 	});
+	const user1Private = new UserPrivateDto(user1);
+	const user1Public = new UserPublicDto(user1);
 	const user2 = Object.assign(new UserEntity(), {
 		username: 'username2',
 		id: '2',
 		role: Role.User,
 		password: 'password',
 	});
+	const user2Private = new UserPrivateDto(user2);
+	const user2Public = new UserPublicDto(user2);
 
 	beforeEach(async () => {
 		const module = await Test.createTestingModule({
@@ -64,9 +70,8 @@ describe('User Service', () => {
 		it('should get users', async function () {
 			jest.spyOn(userRepository, 'find').mockResolvedValue([user1, user2]);
 			jest.spyOn(userRepository, 'count').mockResolvedValue(2);
-			const result = await userService.getUsers(1, 50);
 
-			expect(result).toStrictEqual({ page: 1, perPage: 50, total: 2, users: [user1, user2] });
+			await expect(userService.getUsers(1, 50)).resolves.toStrictEqual({ page: 1, perPage: 50, total: 2, data: [user1Public, user2Public] });
 		});
 	});
 
@@ -80,21 +85,13 @@ describe('User Service', () => {
 			} as RequestWithUser;
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(user1);
 
-			const result = await userService.getUser('1', mockRequest);
-
-			expect(result).toHaveProperty('updatedAt');
-			expect(result).not.toHaveProperty('password');
+			await expect(userService.getUser('1', mockRequest)).resolves.toEqual(user1Private as Object);
 		});
 
 		it('should throw a NotFoundException if no user is found', async function () {
-			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(new Error('Not found error'));
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValueOnce(Error);
 
-			try {
-				await userService.getUser('1');
-				expect(true).toBe(false);
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.getUser('1')).rejects.toThrow(NotFoundException);
 		});
 
 		it("should throw a UnauthorizedException if the userId from the token's payload does not correspond to an existing user", async function () {
@@ -105,14 +102,9 @@ describe('User Service', () => {
 				},
 			} as RequestWithUser;
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
-			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValueOnce(new Error('Not found error'));
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValueOnce(Error);
 
-			try {
-				await userService.getUser('1', mockRequest);
-				expect(true).toBe(false);
-			} catch (error) {
-				expect(error).toBeInstanceOf(UnauthorizedException);
-			}
+			await expect(userService.getUser('1', mockRequest)).rejects.toThrow(UnauthorizedException);
 		});
 
 		it("should throw a ForbidenException if the userId from the token's payload does not correspond to the passed id and the role is not admin", async function () {
@@ -125,12 +117,7 @@ describe('User Service', () => {
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user2);
 
-			try {
-				await userService.getUser('1', mockRequest);
-				expect(true).toBe(false);
-			} catch (error) {
-				expect(error).toBeInstanceOf(ForbiddenException);
-			}
+			await expect(userService.getUser('1', mockRequest)).rejects.toThrow(ForbiddenException);
 		});
 	});
 
@@ -138,19 +125,13 @@ describe('User Service', () => {
 		it('should get the user roles', async function () {
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 
-			const result = await userService.getUserRole('1');
-
-			expect(result).toBe(user1.role);
+			await expect(userService.getUserRole('1')).resolves.toBe(user1.role);
 		});
 
 		it('should throw if the user is not found', async function () {
 			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(new Error('Not found error'));
 
-			try {
-				await userService.getUserRole('1');
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.getUserRole('1')).rejects.toThrow(NotFoundException);
 		});
 	});
 
@@ -158,19 +139,13 @@ describe('User Service', () => {
 		it('should get a user by his username', async function () {
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 
-			const result = await userService.getUserByUsername('1');
-
-			expect(result).toBe(user1);
+			await expect(userService.getUserByUsername('1')).resolves.toStrictEqual(user1);
 		});
 
 		it('should throw if the user is not found', async function () {
-			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(new Error('Not found error'));
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(Error);
 
-			try {
-				await userService.getUserByUsername('1');
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.getUserByUsername('1')).rejects.toThrow(NotFoundException);
 		});
 	});
 
@@ -178,19 +153,13 @@ describe('User Service', () => {
 		it('should get a user by his email', async function () {
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 
-			const result = await userService.getUserByEmail('1');
-
-			expect(result).toBe(user1);
+			await expect(userService.getUserByEmail('1')).resolves.toStrictEqual(user1);
 		});
 
 		it('should throw if the user is not found', async function () {
-			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(new Error('Not found error'));
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(Error);
 
-			try {
-				await userService.getUserByEmail('1');
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.getUserByEmail('1')).rejects.toThrow(NotFoundException);
 		});
 	});
 
@@ -198,19 +167,13 @@ describe('User Service', () => {
 		it('should get a user by his email', async function () {
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 
-			const result = await userService.getUserEntityById('1');
-
-			expect(result).toBe(user1);
+			await expect(userService.getUserEntityById('1')).resolves.toBe(user1);
 		});
 
 		it('should throw if the user is not found', async function () {
-			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(new Error('Not found error'));
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValue(Error);
 
-			try {
-				await userService.getUserEntityById('1');
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.getUserEntityById('1')).rejects.toThrow(NotFoundException);
 		});
 	});
 
@@ -232,14 +195,14 @@ describe('User Service', () => {
 	});
 
 	describe('save user', () => {
-		it('should be able to save a user with user role', async function () {
+		it('should not be able to save a user with user role', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
 					id: '1',
-					role: Role.Admin,
+					role: Role.User,
 				},
 			} as RequestWithUser
 
@@ -250,9 +213,7 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserCreationDto;
 
-			const result = await userService.saveUser(newUser, mockRequest);
-
-			expect(result).toBeDefined();
+			await expect(userService.saveUser(newUser, mockRequest)).rejects.toThrow(UnauthorizedException);
 		});
 
 		it('should be able to save a user with admin role', async function () {
@@ -273,9 +234,7 @@ describe('User Service', () => {
 				role: Role.Admin,
 			} as UserCreationDto;
 
-			const result = await userService.saveUser(newUser, mockRequest);
-
-			expect(result).toBeDefined();
+			await expect(userService.saveUser(newUser, mockRequest)).resolves.toStrictEqual(user1Private);
 		});
 
 		it('should throw if a user with the same username already exist', async function () {
@@ -295,16 +254,11 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserCreationDto;
 
-			try {
-				await userService.saveUser(newUser, mockRequest);
-			} catch (error) {
-				expect(error).toBeInstanceOf(ConflictException);
-			}
+			await expect(userService.saveUser(newUser, mockRequest)).rejects.toThrow(ConflictException);
 		});
 
 		it('should throw if a user with the same email already exist', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined).mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -320,36 +274,8 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserCreationDto;
 
-			try {
-				await userService.saveUser(newUser, mockRequest);
-			} catch (error) {
-				expect(error).toBeInstanceOf(ConflictException);
-			}
+			await expect(userService.saveUser(newUser, mockRequest)).rejects.toThrow(ConflictException);
 		});
-	});
-
-	it('should throw if user while trying to save a new user without being admin', async function () {
-		jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
-		jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
-
-		const mockRequest = {
-			user: {
-				id: '1',
-				role: Role.User,
-			},
-		} as RequestWithUser
-
-		const newUser = {
-			username: 'username',
-			password: 'password',
-			email: 'test@provider.com',
-		} as UserCreationDto;
-
-		try {
-			await userService.saveUser(newUser, mockRequest);
-		} catch (error) {
-			expect(error).toBeInstanceOf(UnauthorizedException);
-		}
 	});
 
 	describe('patch user', () => {
@@ -359,7 +285,7 @@ describe('User Service', () => {
 			const mockRequest = {
 				user: {
 					id: '1',
-					role: Role.User,
+					role: Role.Admin,
 				},
 			} as RequestWithUser;
 
@@ -369,16 +295,11 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserPatchDto;
 
-			try {
-				await userService.patchUser(mockRequest, '1', updatedUser);
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.patchUser(mockRequest, '1', updatedUser)).rejects.toThrow(NotFoundException);
 		});
 
 		it('should throw an UnauthorizedException if the logged in user is different', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user2);
-			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user2).mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -393,16 +314,12 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserPatchDto;
 
-			try {
-				await userService.patchUser(mockRequest, '2', updatedUser);
-			} catch (error) {
-				expect(error).toBeInstanceOf(UnauthorizedException);
-			}
+			await expect(userService.patchUser(mockRequest, '2', updatedUser)).rejects.toThrow(UnauthorizedException);
 		});
 
 		it('should be able to hash the password', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -418,13 +335,12 @@ describe('User Service', () => {
 			} as UserPatchDto;
 
 			const result = await userService.patchUser(mockRequest, '1', updatedUser);
-
-			expect(result).toBeDefined();
+			const user1PrivateUpdated = new UserPrivateDto(user1);
+			expect(result).toStrictEqual(user1PrivateUpdated);
 		});
 
 		it('should throw a ConflictException if the new username is not unique', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -439,17 +355,11 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserPatchDto;
 
-			try {
-				await userService.patchUser(mockRequest, '1', updatedUser);
-			} catch (error) {
-				expect(error).toBeInstanceOf(ConflictException);
-			}
+			await expect(userService.patchUser(mockRequest, '1', updatedUser)).rejects.toThrow(ConflictException);
 		});
 
 		it('should throw a ConflictException if the new email is not unique', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined).mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -465,16 +375,12 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserPatchDto;
 
-			try {
-				await userService.patchUser(mockRequest, '1', updatedUser);
-			} catch (error) {
-				expect(error).toBeInstanceOf(ConflictException);
-			}
+			await expect(userService.patchUser(mockRequest, '1', updatedUser)).rejects.toThrow(ConflictException);
 		});
 
 		it('should be able to update a user', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -488,9 +394,7 @@ describe('User Service', () => {
 				role: Role.User,
 			} as UserPatchDto;
 
-			const result = await userService.patchUser(mockRequest, '1', updatedUser);
-
-			expect(result).toBeDefined();
+			await expect(userService.patchUser(mockRequest, '1', updatedUser)).resolves.toBeDefined();
 		});
 	});
 
@@ -506,11 +410,7 @@ describe('User Service', () => {
 				},
 			} as RequestWithUser;
 
-			try {
-				await userService.deleteUser(mockRequest, '1');
-			} catch (error) {
-				expect(error).toBeInstanceOf(NotFoundException);
-			}
+			await expect(userService.deleteUser(mockRequest, '1')).rejects.toThrow(NotFoundException);
 		});
 
 		it('should throw an UnauthorizedException the ids does not match', async function () {
@@ -528,7 +428,7 @@ describe('User Service', () => {
 			}
 		});
 
-		it('should return deleted:1 when deleting a user', async function () {
+		it('should not throw when deleting a user', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 
@@ -539,20 +439,21 @@ describe('User Service', () => {
 				},
 			} as RequestWithUser;
 
-			const result = await userService.deleteUser(mockRequest, '1');
-			expect(result).toStrictEqual({ deleted: 1 });
+			await expect(userService.deleteUser(mockRequest, '1')).resolves.toBeUndefined();
 		});
 	});
 
 	describe('user exist', () => {
 		it('should return true is the user exist', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
-			expect(await userService.userExist('1')).toBe(true);
+
+			await expect(userService.userExist('1')).resolves.toBe(true);
 		});
 
 		it('should return false is the user does not exist', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
-			expect(await userService.userExist('1')).toBe(false);
+
+			await expect(userService.userExist('1')).resolves.toBe(false);
 		});
 	});
 });
