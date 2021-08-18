@@ -1,4 +1,3 @@
-import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
 import {
 	Column,
@@ -14,27 +13,22 @@ export class QuoteEntity {
 	@ApiProperty({
 		type: 'ObjectId',
 	})
-	@AutoMap()
 	id?: string;
 
 	@Column({
 		nullable: false
 	})
-	@AutoMap()
 	text?: string;
 
 	@Column()
-	@AutoMap()
 	source?: string;
 
 	@Column({
 		nullable: false
 	})
-	@AutoMap()
 	validated: boolean = false;
 
 	@Column()
-	@AutoMap()
 	author?: string;
 
 	@CreateDateColumn({
@@ -42,7 +36,6 @@ export class QuoteEntity {
 		type: 'timestamp',
 		nullable: true,
 	})
-	@AutoMap()
 	createdAt?: string;
 
 	@UpdateDateColumn({
@@ -50,6 +43,5 @@ export class QuoteEntity {
 		type: 'timestamp',
 		nullable: true,
 	})
-	@AutoMap()
 	updatedAt?: string;
 }
