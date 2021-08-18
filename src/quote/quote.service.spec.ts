@@ -244,7 +244,7 @@ describe('Quote Service', () => {
 				},
 			} as RequestWithUser;
 
-			await expect(await quoteService.deleteQuote(mockRequest, '1')).rejects.toThrowError(UnauthorizedException);
+			await expect(quoteService.getPrivateQuote(mockRequest, '1')).rejects.toThrow(UnauthorizedException);
 		});
 	});
 
@@ -342,7 +342,7 @@ describe('Quote Service', () => {
 			const mockRequest = {
 				user: {
 					id: '1',
-					role: Role.User,
+					role: Role.Admin,
 				},
 			} as RequestWithUser;
 
