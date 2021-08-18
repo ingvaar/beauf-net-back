@@ -101,6 +101,11 @@ export class QuoteService {
 	}
 
 	public async validateQuote(request: RequestWithUser, id: string): Promise<QuotePrivateDto> {
-		return new QuotePrivateDto(new QuoteEntity());
+		if (request.user.role != Role.Admin) {
+			throw new UnauthorizedException(`user is not admin`);
+		}
+		const toValidate = await this.getQuoteEntity(id);
+		toValidate.validated = true;
+		return new QuotePrivateDto(await this.quoteRepository.save(toValidate));
 	}
 }
