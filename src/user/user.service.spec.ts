@@ -396,6 +396,26 @@ describe('User Service', () => {
 
 			await expect(userService.patchUser(mockRequest, '1', updatedUser)).resolves.toBeDefined();
 		});
+
+		it('should not update user role as user', async function () {
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
+
+			const mockRequest = {
+				user: {
+					id: '1',
+					role: Role.Admin,
+				},
+			} as RequestWithUser;
+
+			const updatedUser = {
+				role: Role.Admin,
+			} as UserPatchDto;
+
+			const result = await userService.patchUser(mockRequest, '1', updatedUser);
+			const user1PrivateUpdated = new UserPrivateDto(user1);
+			expect(result).toStrictEqual(user1PrivateUpdated);
+		});
 	});
 
 	describe('delete user', () => {
