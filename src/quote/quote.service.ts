@@ -89,6 +89,11 @@ export class QuoteService {
 	}
 
 	public async deleteQuote(request: RequestWithUser, id: string) {
+		if (request.user.role != Role.Admin) {
+			throw new UnauthorizedException(`user is not admin`);
+		}
+		const toDelete = await this.getQuoteEntity(id);
+		await this.quoteRepository.remove(toDelete);
 	}
 
 	public async updateQuote(request: RequestWithUser, id: string, updatedQuote: QuotePatchDto): Promise<QuotePrivateDto> {
