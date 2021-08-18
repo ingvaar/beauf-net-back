@@ -400,4 +400,12 @@ describe('Quote Service', () => {
 			await expect(quoteService.validateQuote(mockRequest, '1')).resolves.toStrictEqual(quote1Private);
 		});
 	});
+
+	describe("get quote entity", () => {
+		it('should throw if quote does not exists', async function () {
+			jest.spyOn(quoteRepository, 'findOneOrFail').mockRejectedValueOnce(Error);
+
+			await expect(quoteService.getQuoteEntity('1')).rejects.toThrow(NotFoundException);
+		});
+	})
 });
