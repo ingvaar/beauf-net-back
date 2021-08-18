@@ -175,7 +175,9 @@ export class UserService implements OnApplicationBootstrap {
 		}
 
 		if (request.user.role == Role.Admin && toPatch.role) {
-			dbUser.role = toPatch.role;
+			updated.role = toPatch.role;
+		} else {
+			updated.role = dbUser.role;
 		}
 
 		return new UserPrivateDto(await this.userRepository.save(updated));
