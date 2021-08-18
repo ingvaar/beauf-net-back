@@ -4,15 +4,15 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ParseObjectIDPipe } from '../common/objectID.pipe';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
+import { UserPrivateDto } from './dto/user.private.dto';
 import { UserPublicDto } from './dto/user.public.dto';
-import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 import { RequestWithUser } from './user.utils';
 
 @ApiTags('users')
 @Controller('users')
 export class UserController {
-	constructor(private readonly userService: UserService) {}
+	constructor(private readonly userService: UserService) { }
 
 	@Get()
 	@ApiParam({ name: 'perPage', required: false })
@@ -20,7 +20,7 @@ export class UserController {
 	getUsers(
 		@Query('perPage') perPage: number,
 		@Query('page') page: number,
-	): Promise<{ page: number; perPage: number; total: number; users: UserPublicDto[] }> {
+	): Promise<{ page: number; perPage: number; total: number; data: UserPublicDto[] }> {
 		return this.userService.getUsers(page, perPage);
 	}
 
@@ -28,7 +28,7 @@ export class UserController {
 	getUser(
 		@Req() request: RequestWithUser,
 		@Param('id', new ParseObjectIDPipe()) id: string,
-	): Promise<UserPublicDto | undefined> {
+	): Promise<UserPublicDto> {
 		return this.userService.getUser(id, request);
 	}
 
@@ -36,7 +36,7 @@ export class UserController {
 	postUser(
 		@Req() request: RequestWithUser,
 		@Body() createUser: UserCreationDto
-		): Promise<UserEntity> {
+	): Promise<UserPrivateDto> {
 		return this.userService.saveUser(createUser, request);
 	}
 
@@ -45,7 +45,7 @@ export class UserController {
 		@Req() request: RequestWithUser,
 		@Body() toPatch: UserPatchDto,
 		@Param('id', new ParseObjectIDPipe()) id: string,
-	): Promise<UserEntity> {
+	): Promise<UserPrivateDto> {
 		return this.userService.patchUser(request, id, toPatch);
 	}
 
@@ -53,7 +53,7 @@ export class UserController {
 	deleteUser(
 		@Req() request: RequestWithUser,
 		@Param('id', new ParseObjectIDPipe()) id: string,
-	): Promise<{ deleted: number }> {
+	): void {
 		return this.userService.deleteUser(request, id);
 	}
 }
