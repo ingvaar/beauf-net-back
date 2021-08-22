@@ -46,7 +46,7 @@ export class UserService implements OnApplicationBootstrap {
 		}
 
 		let toSave = Object.assign(new UserEntity(), {
-			username: "admin",
+			username: adminName,
 			password: await bcrypt.hash(adminPassword, 10),
 			role: Role.Admin,
 			email: ""
