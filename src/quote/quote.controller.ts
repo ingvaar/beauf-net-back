@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from "@nestjs/common";
 import { ApiParam, ApiTags } from "@nestjs/swagger";
+import { Public } from "src/auth/auth.decorator";
 import { ParseObjectIDPipe } from "../common/objectID.pipe";
 import { RequestWithUser } from "../user/user.utils";
 import { QuoteCreationDto } from "./dto/quote.creation.dto";
@@ -14,6 +15,7 @@ export class QuoteController {
 	constructor(private readonly quoteService: QuoteService) {}
 
 	@Get()
+	@Public()
 	@ApiParam({name: 'perPage', required: false})
 	@ApiParam({name: 'page', required: false})
 	public getQuotes(
@@ -35,6 +37,7 @@ export class QuoteController {
 	}
 
 	@Get(':id')
+	@Public()
 	public getQuote(
 		@Param('id', new ParseObjectIDPipe()) id: string
 	): Promise<QuotePublicDto> {
@@ -50,6 +53,7 @@ export class QuoteController {
 	}
 
 	@Post()
+	@Public()
 	public postQuote(
 		@Body() newQuote: QuoteCreationDto
 	): Promise<QuotePublicDto> {
