@@ -95,15 +95,10 @@ export class UserService implements OnApplicationBootstrap {
 				throw new UnauthorizedException('Bad Token');
 			});
 			if (connectedUser.id == id) {
-				const privateUser = classToPlain(dbUser, { groups: ['private'] });
-				delete dbUser.password;
-				return Object.assign(privateUser, dbUser);
-			} else {
-				throw new ForbiddenException('Forbidden resource');
+				return new UserPrivateDto(dbUser);
 			}
 		}
-		delete dbUser.password;
-		return dbUser;
+		return new UserPublicDto(dbUser);
 	}
 
 	public async getUserEntityById(id: string): Promise<UserEntity> {
