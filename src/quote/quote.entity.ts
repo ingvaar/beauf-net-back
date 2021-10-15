@@ -20,7 +20,9 @@ export class QuoteEntity {
 	})
 	text?: string;
 
-	@Column()
+	@Column({
+		nullable: true
+	})
 	source?: string;
 
 	@Column({
@@ -28,7 +30,9 @@ export class QuoteEntity {
 	})
 	validated: boolean = false;
 
-	@Column()
+	@Column({
+		nullable: true
+	})
 	author?: string;
 
 	@CreateDateColumn({
