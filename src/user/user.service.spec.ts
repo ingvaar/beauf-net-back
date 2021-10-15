@@ -1,6 +1,5 @@
 import {
 	ConflictException,
-	ForbiddenException,
 	Logger,
 	NotFoundException,
 	UnauthorizedException,
@@ -107,7 +106,7 @@ describe('User Service', () => {
 			await expect(userService.getUser('1', mockRequest)).rejects.toThrow(UnauthorizedException);
 		});
 
-		it("should throw a ForbidenException if the userId from the token's payload does not correspond to the passed id and the role is not admin", async function () {
+		it("should return a public dto if the userId from the token's payload does not correspond to the passed id and the role is not admin", async function () {
 			const mockRequest = {
 				user: {
 					id: '1',
@@ -117,7 +116,7 @@ describe('User Service', () => {
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user2);
 
-			await expect(userService.getUser('1', mockRequest)).rejects.toThrow(ForbiddenException);
+			await expect(userService.getUser('1', mockRequest)).resolves.toStrictEqual(new UserPublicDto(user1));
 		});
 	});
 

@@ -94,7 +94,7 @@ export class UserService implements OnApplicationBootstrap {
 			const connectedUser = await this.getUser(request.user.id).catch(() => {
 				throw new UnauthorizedException('Bad Token');
 			});
-			if (connectedUser.id == id) {
+			if (connectedUser.id == id || connectedUser.role == Role.Admin) {
 				return new UserPrivateDto(dbUser);
 			}
 		}
@@ -116,13 +116,13 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	public async getUserByUsername(username: string): Promise<UserEntity> {
-		return await this.userRepository.findOneOrFail({ username: username }).catch(() => {
+		return this.userRepository.findOneOrFail({ username: username }).catch(() => {
 			throw new NotFoundException(`User with username ${username} not found`);
 		});
 	}
 
 	public async getUserByEmail(email: string): Promise<UserEntity> {
-		return await this.userRepository.findOneOrFail({ email: email }).catch(() => {
+		return this.userRepository.findOneOrFail({ email: email }).catch(() => {
 			throw new NotFoundException(`User with email ${email} not found`);
 		});
 	}
