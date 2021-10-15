@@ -30,7 +30,9 @@ export class QuoteService {
 		perPage: number
 	): Promise<{ page: number; perPage: number; total: number; data: Array<QuotePublicDto> }> {
 		const pagination = Pagination.check(page, perPage);
-		const total = await this.quoteRepository.count();
+		const total = await this.quoteRepository.count({
+			where: { validated: true }
+		});
 		const result = await this.quoteRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
@@ -51,7 +53,9 @@ export class QuoteService {
 			throw new UnauthorizedException(`user is not admin`);
 		}
 		const pagination = Pagination.check(page, perPage);
-		const total = await this.quoteRepository.count();
+		const total = await this.quoteRepository.count({
+			where: { validated: false }
+		});
 		const result = await this.quoteRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
@@ -74,7 +78,7 @@ export class QuoteService {
 	public async getQuote(id: string): Promise<QuotePublicDto> {
 		const quote = await this.getQuoteEntity(id);
 
-		if (quote.validated == false) {
+		if (!quote.validated) {
 			throw new UnauthorizedException(`quote is not validated`);
 		}
 
