@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class QuoteCreationDto {
 	@IsNotEmpty()
@@ -9,4 +9,7 @@ export class QuoteCreationDto {
 
 	@IsOptional()
 	author?: string;
+
+	@IsNotEmpty()
+	captcha!: string;
 }
