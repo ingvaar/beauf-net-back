@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { RequestWithUser } from "../user/user.utils";
 import { Repository } from "typeorm";
@@ -9,16 +9,20 @@ import { QuotePublicDto } from "./dto/quote.public.dto";
 import { QuoteEntity } from "./quote.entity";
 import { Pagination } from "../common/pagination";
 import { Role } from "../auth/roles/role.enum";
+import { GoogleService } from "../services/google.service";
 
 @Injectable()
 export class QuoteService {
 	constructor(
 		@InjectRepository(QuoteEntity)
 		private readonly quoteRepository: Repository<QuoteEntity>,
+		private readonly googleService: GoogleService,
 	) { }
 
 	public async addQuote(newQuote: QuoteCreationDto): Promise<QuotePublicDto> {
-		// TODO: Anti-spam security (captcha, Raph's way, etc...)
+		if (await this.googleService.verifyCaptcha(newQuote.captcha) == false) {
+			throw new BadRequestException("invalid captcha");
+		}
 
 		let toSave = Object.assign(new QuoteEntity(), newQuote);
 
