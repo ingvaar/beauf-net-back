@@ -1,10 +1,11 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Role } from '../auth/roles/role.enum';
-import { RequestWithUser } from '../user/user.utils';
 import { Repository } from 'typeorm';
 
+import { Role } from '../auth/roles/role.enum';
+import { RequestWithUser } from '../user/user.utils';
+import { GoogleService } from '../services/google.service';
 import { QuoteCreationDto } from './dto/quote.creation.dto';
 import { QuotePrivateDto } from './dto/quote.private.dto';
 import { QuotePublicDto } from './dto/quote.public.dto';
@@ -14,6 +15,7 @@ import { QuoteService } from './quote.service';
 describe('Quote Service', () => {
 	let quoteService: QuoteService;
 	let quoteRepository: Repository<QuoteEntity>;
+	let googleService: GoogleService;
 
 	const quote1 = Object.assign(new QuoteEntity(), {
 		id: '1',
@@ -58,21 +60,30 @@ describe('Quote Service', () => {
 						remove: jest.fn(),
 					},
 				},
+				{
+					provide: GoogleService,
+					useValue: {
+						verifyCaptcha: jest.fn(),
+					},
+				},
 			],
 		}).compile();
 
 		quoteService = module.get(QuoteService);
 		quoteRepository = module.get(getRepositoryToken(QuoteEntity));
+		googleService = module.get(GoogleService);
 	});
 
 	it('should be defined', () => {
 		expect(quoteService).toBeDefined();
 		expect(quoteRepository).toBeDefined();
+		expect(googleService).toBeDefined();
 	});
 
 	describe('save Quote', () => {
 		it('should save a new Quote with only text', async function () {
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
+			jest.spyOn(googleService, 'verifyCaptcha').mockResolvedValueOnce(true);
 
 			const newQuote = {
 				text: "Test"
@@ -83,6 +94,7 @@ describe('Quote Service', () => {
 
 		it('should save a new Quote with text and source', async function () {
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
+			jest.spyOn(googleService, 'verifyCaptcha').mockResolvedValueOnce(true);
 
 			const newQuote = {
 				text: "Test",
@@ -94,6 +106,7 @@ describe('Quote Service', () => {
 
 		it('should save a new Quote with text, source and author', async function () {
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
+			jest.spyOn(googleService, 'verifyCaptcha').mockResolvedValueOnce(true);
 
 			const newQuote = {
 				text: "Test",
