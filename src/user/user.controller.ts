@@ -34,10 +34,9 @@ export class UserController {
 
 	@Post()
 	postUser(
-		@Req() request: RequestWithUser,
 		@Body() createUser: UserCreationDto
 	): Promise<UserPrivateDto> {
-		return this.userService.saveUser(createUser, request);
+		return this.userService.saveUser(createUser);
 	}
 
 	@Patch(':id')

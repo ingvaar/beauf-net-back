@@ -8,6 +8,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { GoogleService } from '../services/google.service';
 import { Role } from '../auth/roles/role.enum';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
@@ -20,6 +21,7 @@ import { RequestWithUser } from './user.utils';
 describe('User Service', () => {
 	let userService: UserService;
 	let userRepository: Repository<UserEntity>;
+	let googleService: GoogleService;
 
 	const user1 = Object.assign(new UserEntity(), {
 		username: 'username1',
@@ -53,16 +55,24 @@ describe('User Service', () => {
 						remove: jest.fn(),
 					},
 				},
+				{
+					provide: GoogleService,
+					useValue: {
+						verifyCaptcha: jest.fn(),
+					},
+				},
 			],
 		}).compile();
 
 		userService = module.get(UserService);
 		userRepository = module.get(getRepositoryToken(UserEntity));
+		googleService = module.get(GoogleService);
 	});
 
 	it('should be defined', () => {
 		expect(userService).toBeDefined();
 		expect(userRepository).toBeDefined();
+		expect(googleService).toBeDefined();
 	});
 
 	describe('get users', () => {
@@ -194,86 +204,50 @@ describe('User Service', () => {
 	});
 
 	describe('save user', () => {
-		it('should not be able to save a user with user role', async function () {
+		it('should be able to save a user', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
-
-			const mockRequest = {
-				user: {
-					id: '1',
-					role: Role.User,
-				},
-			} as RequestWithUser
+			jest.spyOn(googleService, 'verifyCaptcha').mockResolvedValueOnce(true);
 
 			const newUser = {
 				username: 'username',
 				password: 'password',
 				email: 'test@provider.com',
 				role: Role.User,
+				captcha: 'test',
 			} as UserCreationDto;
 
-			await expect(userService.saveUser(newUser, mockRequest)).rejects.toThrow(UnauthorizedException);
-		});
-
-		it('should be able to save a user with admin role', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
-			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
-
-			const mockRequest = {
-				user: {
-					id: '1',
-					role: Role.Admin,
-				},
-			} as RequestWithUser
-
-			const newUser = {
-				username: 'username',
-				password: 'password',
-				email: 'test@provider.com',
-				role: Role.Admin,
-			} as UserCreationDto;
-
-			await expect(userService.saveUser(newUser, mockRequest)).resolves.toStrictEqual(user1Private);
+			await expect(userService.saveUser(newUser)).resolves.toStrictEqual(user1Private);
 		});
 
 		it('should throw if a user with the same username already exist', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
-
-			const mockRequest = {
-				user: {
-					id: '1',
-					role: Role.Admin,
-				},
-			} as RequestWithUser
+			jest.spyOn(googleService, 'verifyCaptcha').mockResolvedValueOnce(true);
 
 			const newUser = {
 				username: 'username',
 				password: 'password',
 				email: 'test@provider.com',
 				role: Role.User,
+				captcha: 'test',
 			} as UserCreationDto;
 
-			await expect(userService.saveUser(newUser, mockRequest)).rejects.toThrow(ConflictException);
+			await expect(userService.saveUser(newUser)).rejects.toThrow(ConflictException);
 		});
 
 		it('should throw if a user with the same email already exist', async function () {
 			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined).mockResolvedValueOnce(user1);
-
-			const mockRequest = {
-				user: {
-					id: '1',
-					role: Role.Admin,
-				},
-			} as RequestWithUser
+			jest.spyOn(googleService, 'verifyCaptcha').mockResolvedValueOnce(true);
 
 			const newUser = {
 				username: 'username',
 				password: 'password',
 				email: 'test@provider.com',
 				role: Role.User,
+				captcha: 'test',
 			} as UserCreationDto;
 
-			await expect(userService.saveUser(newUser, mockRequest)).rejects.toThrow(ConflictException);
+			await expect(userService.saveUser(newUser)).rejects.toThrow(ConflictException);
 		});
 	});
 

@@ -1,17 +1,17 @@
 import {
 	ConflictException,
-	ForbiddenException,
 	Injectable,
 	NotFoundException,
 	OnApplicationBootstrap,
 	UnauthorizedException,
 	Logger,
+	BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { classToPlain } from 'class-transformer';
 import { Repository } from 'typeorm';
 
+import { GoogleService } from '../services/google.service';
 import { Role } from '../auth/roles/role.enum';
 import { Pagination } from '../common/pagination';
 import { UserCreationDto } from './dto/user.creation.dto';
@@ -26,6 +26,7 @@ export class UserService implements OnApplicationBootstrap {
 	constructor(
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
+		private readonly googleService: GoogleService,
 	) { }
 
 	async onApplicationBootstrap() {
@@ -127,9 +128,9 @@ export class UserService implements OnApplicationBootstrap {
 		});
 	}
 
-	public async saveUser(newUser: UserCreationDto, request: RequestWithUser): Promise<UserPrivateDto> {
-		if (request.user.role != Role.Admin) {
-			throw new UnauthorizedException("User is not admin");
+	public async saveUser(newUser: UserCreationDto): Promise<UserPrivateDto> {
+		if (await this.googleService.verifyCaptcha(newUser.captcha) == false) {
+			throw new BadRequestException("invalid captcha");
 		}
 
 		let toSave = Object.assign(new UserEntity(), newUser);

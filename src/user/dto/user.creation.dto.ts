@@ -9,4 +9,7 @@ export class UserCreationDto {
 
 	@IsNotEmpty()
 	password!: string;
+
+	@IsNotEmpty()
+	captcha!: string;
 }
