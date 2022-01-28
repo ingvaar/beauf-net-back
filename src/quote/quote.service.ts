@@ -133,4 +133,13 @@ export class QuoteService {
 		toValidate.validated = true;
 		return new QuotePrivateDto(await this.quoteRepository.save(toValidate));
 	}
+
+	public async unvalidateQuote(request: RequestWithUser, id: string): Promise<QuotePrivateDto> {
+		if (request.user.role != Role.Admin) {
+			throw new UnauthorizedException(`user is not admin`);
+		}
+		const toValidate = await this.getQuoteEntity(id);
+		toValidate.validated = false;
+		return new QuotePrivateDto(await this.quoteRepository.save(toValidate));
+	}
 }

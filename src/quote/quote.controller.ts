@@ -84,4 +84,12 @@ export class QuoteController {
 	): Promise<QuotePrivateDto> {
 		return this.quoteService.validateQuote(request, id);
 	}
+
+	@Post(':id/unvalidate')
+	public unvalidateQuote(
+		@Req() request: RequestWithUser,
+		@Param('id', new ParseObjectIDPipe()) id: string,
+	): Promise<QuotePrivateDto> {
+		return this.quoteService.unvalidateQuote(request, id);
+	}
 }
