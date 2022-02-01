@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt/dist/jwt.service';
 import * as bcrypt from 'bcrypt';
 
@@ -23,11 +23,11 @@ export class AuthService {
 		}
 
 		if (!user) {
-			throw new UnauthorizedException('Invalid identifier or password');
+			throw new BadRequestException('Invalid identifier or password');
 		}
 
 		if (!(await bcrypt.compare(pass, user.password || ''))) {
-			throw new UnauthorizedException('Invalid identifier or password');
+			throw new BadRequestException('Invalid identifier or password');
 		}
 
 		return user;
