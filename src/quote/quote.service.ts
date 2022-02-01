@@ -65,7 +65,7 @@ export class QuoteService {
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
 			where: { validated: false },
-			order: { createdAt: 'DESC' },
+			order: { createdAt: 'ASC' },
 		});
 		const datas = new Array<QuotePrivateDto>();
 		result.forEach(entity => datas.push(new QuotePrivateDto(entity)));
