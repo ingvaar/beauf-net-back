@@ -40,7 +40,8 @@ export class QuoteService {
 		const result = await this.quoteRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
-			where: { validated: true }
+			where: { validated: true },
+			order: { createdAt: 'DESC' },
 		});
 		const datas = new Array<QuotePublicDto>();
 		result.forEach(entity => datas.push(new QuotePublicDto(entity)));
@@ -63,7 +64,8 @@ export class QuoteService {
 		const result = await this.quoteRepository.find({
 			skip: (pagination.page - 1) * pagination.perPage,
 			take: pagination.perPage,
-			where: { validated: false }
+			where: { validated: false },
+			order: { createdAt: 'DESC' },
 		});
 		const datas = new Array<QuotePrivateDto>();
 		result.forEach(entity => datas.push(new QuotePrivateDto(entity)));
