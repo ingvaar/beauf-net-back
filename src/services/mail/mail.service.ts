@@ -1,15 +1,17 @@
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { UserEntity } from "../../user/user.entity";
 
 @Injectable()
 export class MailService {
 	constructor(
 		private readonly mailerService: MailerService,
+		private readonly configService: ConfigService,
 		) { }
 
 	public async sendEmailConfirmation(user: UserEntity, token: string) {
-		const url = `https://beauf.net/confirm?token=${token}`;
+		const url = `${this.configService.get<string>("BASE_URL")}/confirm?token=${token}`;
 
 		await this.mailerService.sendMail({
 			to: user.email,

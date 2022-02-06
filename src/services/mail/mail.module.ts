@@ -31,6 +31,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 			}),
 			inject: [ConfigService],
 		}),
+		ConfigModule,
 	],
 	providers: [MailService],
 	exports: [MailService],
