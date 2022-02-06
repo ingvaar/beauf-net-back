@@ -1,7 +1,8 @@
 import { HttpModule } from "@nestjs/axios";
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { GoogleService } from "./google.service";
 
+@Global()
 @Module({
 	imports: [
 		HttpModule,
@@ -10,4 +11,4 @@ import { GoogleService } from "./google.service";
 	providers: [GoogleService],
 	exports: [GoogleService],
 })
-export class ServicesModule { }
+export class GoogleModule { }

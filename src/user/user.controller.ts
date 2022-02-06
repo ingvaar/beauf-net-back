@@ -15,6 +15,7 @@ import { RequestWithUser } from './user.utils';
 export class UserController {
 	constructor(private readonly userService: UserService) { }
 
+	@Public()
 	@Get()
 	@ApiParam({ name: 'perPage', required: false })
 	@ApiParam({ name: 'page', required: false })
@@ -23,7 +24,16 @@ export class UserController {
 		@Query('page') page: number,
 	): Promise<{ page: number; perPage: number; total: number; data: UserPublicDto[] }> {
 		return this.userService.getUsers(page, perPage);
-	}
+	};
+
+	@Public()
+	@Post('confirm')
+	@ApiParam({ name: 'token', required: true })
+	confirm(
+		@Query('token') token: string,
+	): Promise<UserPublicDto> {
+		return this.userService.confirm(token);
+	};
 
 	@Get(':id')
 	getUser(
@@ -31,7 +41,7 @@ export class UserController {
 		@Param('id', new ParseObjectIDPipe()) id: string,
 	): Promise<UserPublicDto | UserPrivateDto> {
 		return this.userService.getUser(id, request);
-	}
+	};
 
 	@Public()
 	@Post()
@@ -39,7 +49,7 @@ export class UserController {
 		@Body() createUser: UserCreationDto
 	): Promise<UserPrivateDto> {
 		return this.userService.saveUser(createUser);
-	}
+	};
 
 	@Patch(':id')
 	patchUser(
@@ -48,7 +58,7 @@ export class UserController {
 		@Param('id', new ParseObjectIDPipe()) id: string,
 	): Promise<UserPrivateDto> {
 		return this.userService.patchUser(request, id, toPatch);
-	}
+	};
 
 	@Delete(':id')
 	deleteUser(
@@ -56,5 +66,5 @@ export class UserController {
 		@Param('id', new ParseObjectIDPipe()) id: string,
 	) {
 		return this.userService.deleteUser(request, id);
-	}
+	};
 }
