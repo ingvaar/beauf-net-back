@@ -27,6 +27,11 @@ export class UserEntity {
 	})
 	email?: string;
 
+	@Column({
+		default: 'FALSE',
+	})
+	confirmed?: boolean;
+
 	@Column()
 	password?: string;
 

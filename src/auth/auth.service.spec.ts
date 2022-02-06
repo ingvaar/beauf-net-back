@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt/dist/jwt.service';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
@@ -80,7 +80,7 @@ describe('Auth Service', () => {
 			try {
 				await authService.login(credentials);
 			} catch (error) {
-				expect(error).toBeInstanceOf(UnauthorizedException);
+				expect(error).toBeInstanceOf(BadRequestException);
 			}
 		});
 	});
@@ -118,7 +118,7 @@ describe('Auth Service', () => {
 			try {
 				await authService.validateUser('username', 'password');
 			} catch (error) {
-				expect(error).toBeInstanceOf(UnauthorizedException);
+				expect(error).toBeInstanceOf(BadRequestException);
 			}
 		});
 	});

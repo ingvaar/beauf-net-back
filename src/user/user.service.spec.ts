@@ -8,7 +8,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { GoogleService } from '../services/google.service';
+import { GoogleService } from '../services/google/google.service';
 import { Role } from '../auth/roles/role.enum';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
@@ -17,11 +17,14 @@ import { UserPublicDto } from './dto/user.public.dto';
 import { UserEntity } from './user.entity';
 import { UserService } from './user.service';
 import { RequestWithUser } from './user.utils';
+import { MailService } from '../services/mail/mail.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('User Service', () => {
 	let userService: UserService;
 	let userRepository: Repository<UserEntity>;
 	let googleService: GoogleService;
+	let mailService: MailService;
 
 	const user1 = Object.assign(new UserEntity(), {
 		username: 'username1',
@@ -56,9 +59,31 @@ describe('User Service', () => {
 					},
 				},
 				{
+					provide: JwtService,
+					useValue: {
+						sign: jest.fn(() => {
+							return 'token';
+						}),
+						decode: jest.fn((payload: string) => {
+							if (payload == 'validPayload') {
+								return { userID: 1 };
+							}
+							if (payload == 'validPayloadInvalidUserId') {
+								return { userID: 2 };
+							}
+						}),
+					},
+				},
+				{
 					provide: GoogleService,
 					useValue: {
 						verifyCaptcha: jest.fn(),
+					},
+				},
+				{
+					provide: MailService,
+					useValue: {
+						sendEmailConfirmation: jest.fn(),
 					},
 				},
 			],
@@ -67,12 +92,14 @@ describe('User Service', () => {
 		userService = module.get(UserService);
 		userRepository = module.get(getRepositoryToken(UserEntity));
 		googleService = module.get(GoogleService);
+		mailService = module.get(MailService);
 	});
 
 	it('should be defined', () => {
 		expect(userService).toBeDefined();
 		expect(userRepository).toBeDefined();
 		expect(googleService).toBeDefined();
+		expect(mailService).toBeDefined();
 	});
 
 	describe('get users', () => {
