@@ -55,7 +55,7 @@ export class UserService implements OnApplicationBootstrap {
 			username: adminName,
 			password: await bcrypt.hash(adminPassword, 10),
 			role: Role.Admin,
-			email: "",
+			email: process.env.ADMIN_EMAIL || "",
 			confirmed: true,
 		});
 
