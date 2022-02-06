@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 
 import { Role } from '../auth/roles/role.enum';
 import { RequestWithUser } from '../user/user.utils';
-import { GoogleService } from '../services/google.service';
+import { GoogleService } from '../services/google/google.service';
 import { QuoteCreationDto } from './dto/quote.creation.dto';
 import { QuotePrivateDto } from './dto/quote.private.dto';
 import { QuotePublicDto } from './dto/quote.public.dto';

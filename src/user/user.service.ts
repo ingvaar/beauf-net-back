@@ -6,12 +6,13 @@ import {
 	UnauthorizedException,
 	Logger,
 	BadRequestException,
+	InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 
-import { GoogleService } from '../services/google.service';
+import { GoogleService } from '../services/google/google.service';
 import { Role } from '../auth/roles/role.enum';
 import { Pagination } from '../common/pagination';
 import { UserCreationDto } from './dto/user.creation.dto';
@@ -20,6 +21,8 @@ import { UserPrivateDto } from './dto/user.private.dto';
 import { UserPublicDto } from './dto/user.public.dto';
 import { UserEntity } from './user.entity';
 import { RequestWithUser } from './user.utils';
+import { MailService } from '../services/mail/mail.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService implements OnApplicationBootstrap {
@@ -27,6 +30,8 @@ export class UserService implements OnApplicationBootstrap {
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
 		private readonly googleService: GoogleService,
+		private readonly mailService: MailService,
+		private jwtService: JwtService,
 	) { }
 
 	async onApplicationBootstrap() {
@@ -144,7 +149,21 @@ export class UserService implements OnApplicationBootstrap {
 			throw new ConflictException(`User with email ${newUser.email} already exists`);
 		}
 
-		return new UserPrivateDto(await this.userRepository.save(toSave));
+		const savedUser = await this.userRepository.save(toSave);
+
+		const token = this.jwtService.sign({
+			userID: savedUser.id,
+			email: savedUser.email,
+		});
+
+		try {
+			this.mailService.sendEmailConfirmation(savedUser, token);
+		} catch(e: any){
+			await this.userRepository.delete(savedUser);
+			throw new InternalServerErrorException("Error while sending confirmation email");
+		}
+
+		return new UserPrivateDto(savedUser);
 	}
 
 	public async patchUser(request: RequestWithUser, id: string, toPatch: UserPatchDto): Promise<UserPrivateDto> {
@@ -196,5 +215,27 @@ export class UserService implements OnApplicationBootstrap {
 			return false;
 		}
 		return true;
+	}
+
+	public async confirm(token: string): Promise<UserPublicDto> {
+		const decodedToken: string | { [key:string]: any } | null = this.jwtService.decode(token);
+
+		if (decodedToken === undefined || decodedToken === null || typeof(decodedToken) === 'string') {
+			throw new BadRequestException("Invalid token");
+		}
+
+		const user = await this.getUserEntityById(decodedToken.userID);
+
+		if (user.confirmed) {
+			throw new BadRequestException("Email already confirmed");
+		}
+
+		if (user.email !== decodedToken.email) {
+			throw new BadRequestException("Invalid token");
+		}
+
+		user.confirmed = true;
+
+		return new UserPublicDto(await this.userRepository.save(user));
 	}
 }

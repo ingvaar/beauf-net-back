@@ -9,7 +9,7 @@ import { QuotePublicDto } from "./dto/quote.public.dto";
 import { QuoteEntity } from "./quote.entity";
 import { Pagination } from "../common/pagination";
 import { Role } from "../auth/roles/role.enum";
-import { GoogleService } from "../services/google.service";
+import { GoogleService } from "../services/google/google.service";
 
 @Injectable()
 export class QuoteService {

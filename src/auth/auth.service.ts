@@ -8,7 +8,10 @@ import { UserLoginDto } from './dto/user.login.dto';
 
 @Injectable()
 export class AuthService {
-	constructor(private userService: UserService, private jwtService: JwtService) { }
+	constructor(
+		private userService: UserService,
+		private jwtService: JwtService
+	) { }
 
 	public async validateUser(identifier: string, pass: string): Promise<UserEntity> {
 		let user = undefined;
