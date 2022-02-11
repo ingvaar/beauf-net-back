@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/auth/auth.decorator';
 
+import { Public } from '../auth/auth.decorator';
 import { ParseObjectIDPipe } from '../common/objectID.pipe';
 import { UserCreationDto } from './dto/user.creation.dto';
 import { UserPatchDto } from './dto/user.patch.dto';
@@ -24,6 +24,13 @@ export class UserController {
 		@Query('page') page: number,
 	): Promise<{ page: number; perPage: number; total: number; data: UserPublicDto[] }> {
 		return this.userService.getUsers(page, perPage);
+	};
+
+	@Post('resend')
+	resend(
+		@Req() request: RequestWithUser,
+	): Promise<UserPublicDto> {
+		return this.userService.resend(request);
 	};
 
 	@Public()

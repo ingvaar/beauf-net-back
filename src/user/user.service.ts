@@ -94,9 +94,7 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	public async getUser(id: string, request?: RequestWithUser): Promise<UserPublicDto | UserPrivateDto> {
-		const dbUser = await this.userRepository.findOneOrFail(id).catch(() => {
-			throw new NotFoundException(`User with id ${id} not found`);
-		});
+		const dbUser = await this.getUserEntityById(id);
 		if (request && request.user && request.user.id) {
 			const connectedUser = await this.getUser(request.user.id).catch(() => {
 				throw new UnauthorizedException('Bad Token');
@@ -168,10 +166,7 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	public async patchUser(request: RequestWithUser, id: string, toPatch: UserPatchDto): Promise<UserPrivateDto> {
-		const dbUser = await this.userRepository.findOne(id);
-		if (!dbUser) {
-			throw new NotFoundException(`User with id ${id} not found`);
-		}
+		const dbUser = await this.getUserEntityById(id);
 		if (dbUser.id != request.user.id && request.user.role != Role.Admin) {
 			throw new UnauthorizedException('Cannot modify another user`s account');
 		}
@@ -196,11 +191,21 @@ export class UserService implements OnApplicationBootstrap {
 			updated.role = dbUser.role;
 		}
 
-		return new UserPrivateDto(await this.userRepository.save(updated));
+		if (toPatch.email) {
+			updated.confirmed = false;
+		}
+
+		const patchedUser = await this.userRepository.save(updated);
+
+		if (toPatch.email) {
+			this.sendEmailConfirmation(patchedUser);
+		}
+
+		return new UserPrivateDto(patchedUser);
 	}
 
 	public async deleteUser(request: RequestWithUser, id: string) {
-		const userToRemove = await this.userRepository.findOne(id);
+		const userToRemove = await this.getUserEntityById(id);
 
 		if (id != request.user.id && request.user.role != Role.Admin) {
 			throw new UnauthorizedException();
@@ -238,5 +243,25 @@ export class UserService implements OnApplicationBootstrap {
 		user.confirmed = true;
 
 		return new UserPublicDto(await this.userRepository.save(user));
+	}
+
+	public async resend(request: RequestWithUser): Promise<UserPublicDto> {
+		const user = await this.getUserEntityById(request.user.id);
+
+		return await this.sendEmailConfirmation(user);
+	}
+
+	private async sendEmailConfirmation(user: UserEntity): Promise<UserPublicDto> {
+		const token = this.jwtService.sign({
+			userID: user.id,
+			email: user.email,
+		});
+
+		try {
+			this.mailService.sendEmailConfirmation(user, token);
+		} catch(e: any){
+			throw new InternalServerErrorException("Error while sending confirmation email");
+		}
+		return new UserPublicDto(user);
 	}
 }
