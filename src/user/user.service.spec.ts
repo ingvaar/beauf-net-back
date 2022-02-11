@@ -280,7 +280,7 @@ describe('User Service', () => {
 
 	describe('patch user', () => {
 		it('should throw a NotFoundException if no user with id is found', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValueOnce(Error);
 
 			const mockRequest = {
 				user: {
@@ -299,7 +299,7 @@ describe('User Service', () => {
 		});
 
 		it('should throw an UnauthorizedException if the logged in user is different', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user2).mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user2).mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -318,7 +318,8 @@ describe('User Service', () => {
 		});
 
 		it('should be able to hash the password', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
@@ -340,7 +341,8 @@ describe('User Service', () => {
 		});
 
 		it('should throw a ConflictException if the new username is not unique', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -359,7 +361,8 @@ describe('User Service', () => {
 		});
 
 		it('should throw a ConflictException if the new email is not unique', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined).mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined).mockResolvedValueOnce(user1);
 
 			const mockRequest = {
 				user: {
@@ -379,7 +382,8 @@ describe('User Service', () => {
 		});
 
 		it('should be able to update a user', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1)
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
@@ -398,7 +402,8 @@ describe('User Service', () => {
 		});
 
 		it('should not update user role as user', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(user1).mockResolvedValueOnce(undefined);
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
 			jest.spyOn(userRepository, 'save').mockResolvedValueOnce(user1);
 
 			const mockRequest = {
@@ -420,8 +425,7 @@ describe('User Service', () => {
 
 	describe('delete user', () => {
 		it('should throw an UnauthorizedException if no user with id is found', async function () {
-			jest.spyOn(userRepository, 'findOne').mockResolvedValueOnce(undefined);
-			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user1);
+			jest.spyOn(userRepository, 'findOneOrFail').mockRejectedValueOnce(Error);
 
 			const mockRequest = {
 				user: {
@@ -434,6 +438,7 @@ describe('User Service', () => {
 		});
 
 		it('should throw an UnauthorizedException the ids does not match', async function () {
+			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValueOnce(user2);
 			const mockRequest = {
 				user: {
 					id: '1',
