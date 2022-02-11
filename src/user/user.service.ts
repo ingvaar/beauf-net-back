@@ -210,9 +210,6 @@ export class UserService implements OnApplicationBootstrap {
 		if (id != request.user.id && request.user.role != Role.Admin) {
 			throw new UnauthorizedException();
 		}
-		if (!userToRemove) {
-			throw new NotFoundException(`User with id ${id} not found`);
-		}
 		await this.userRepository.remove(userToRemove);
 	}
 
