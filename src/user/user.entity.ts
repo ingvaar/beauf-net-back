@@ -30,7 +30,7 @@ export class UserEntity {
 	@Column({
 		default: 'FALSE',
 	})
-	confirmed?: boolean;
+	confirmed!: boolean;
 
 	@Column()
 	password?: string;

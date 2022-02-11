@@ -6,6 +6,7 @@ export class UserPublicDto {
 		this.id = userEntity.id;
 		this.username = userEntity.username;
 		this.role = userEntity.role;
+		this.confirmed = userEntity.confirmed;
 	}
 
 	id?: string;
@@ -13,4 +14,6 @@ export class UserPublicDto {
 	username?: string;
 
 	role!: Role;
+
+	confirmed!: boolean;
 }
