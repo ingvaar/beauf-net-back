@@ -9,6 +9,7 @@ export class UserPrivateDto {
 		this.role = userEntity.role;
 		this.createdAt = userEntity.createdAt!;
 		this.updatedAt = userEntity.updatedAt;
+		this.confirmed = userEntity.confirmed;
 	}
 
 	id!: string;
@@ -18,6 +19,8 @@ export class UserPrivateDto {
 	email?: string;
 
 	role!: Role;
+
+	confirmed!: boolean;
 
 	createdAt!: string;
 

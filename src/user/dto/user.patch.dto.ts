@@ -18,13 +18,5 @@ export class UserPatchDto {
 
 	@ApiPropertyOptional()
 	@IsOptional()
-	publicKey?: string;
-
-	@ApiPropertyOptional()
-	@IsOptional()
 	role?: Role;
-
-	@ApiPropertyOptional()
-	@IsOptional()
-	privateKey?: string;
 }
