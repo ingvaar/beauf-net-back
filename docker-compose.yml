@@ -40,6 +40,9 @@ services:
         volumes:
             - db-data:/var/lib/postgresql/data
         command: -p ${BEAUF_NET_POSTGRES_PORT}
+        ports:
+            - 5432:5432
+
 
     adminer:
         image: adminer:latest
