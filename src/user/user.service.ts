@@ -156,10 +156,9 @@ export class UserService implements OnApplicationBootstrap {
 		});
 
 		try {
-			this.mailService.sendEmailConfirmation(savedUser, token);
+			await this.mailService.sendEmailConfirmation(savedUser, token);
 		} catch(e: any){
 			await this.userRepository.delete(savedUser);
-			throw new InternalServerErrorException("Error while sending confirmation email");
 		}
 
 		return new UserPrivateDto(savedUser);
@@ -255,7 +254,7 @@ export class UserService implements OnApplicationBootstrap {
 		});
 
 		try {
-			this.mailService.sendEmailConfirmation(user, token);
+			await this.mailService.sendEmailConfirmation(user, token);
 		} catch(e: any){
 			throw new InternalServerErrorException("Error while sending confirmation email");
 		}
