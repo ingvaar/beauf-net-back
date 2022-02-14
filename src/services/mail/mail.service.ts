@@ -1,5 +1,5 @@
 import { MailerService } from "@nestjs-modules/mailer";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UserEntity } from "../../user/user.entity";
 
@@ -23,7 +23,7 @@ export class MailService {
 			},
 		}).catch((reason: any) => {
 			Logger.error(`Cannot send mail: ${reason.message}`);
-			throw new Error(`Cannot send mail: ${reason.message}`);
+			throw new ServiceUnavailableException(`Cannot send mail: ${reason.message}`);
 		});
 	}
 }

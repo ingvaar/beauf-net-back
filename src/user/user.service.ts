@@ -6,7 +6,6 @@ import {
 	UnauthorizedException,
 	Logger,
 	BadRequestException,
-	InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -253,11 +252,7 @@ export class UserService implements OnApplicationBootstrap {
 			email: user.email,
 		});
 
-		try {
-			await this.mailService.sendEmailConfirmation(user, token);
-		} catch(e: any){
-			throw new InternalServerErrorException("Error while sending confirmation email");
-		}
+		await this.mailService.sendEmailConfirmation(user, token);
 		return new UserPublicDto(user);
 	}
 }
