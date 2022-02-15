@@ -158,6 +158,7 @@ export class UserService implements OnApplicationBootstrap {
 		try {
 			await this.mailService.sendEmailConfirmation(savedUser, token);
 		} catch(e: any){
+			Logger.error(`Mailing service error: ${e.message}`);
 			await this.userRepository.delete(savedUser);
 			throw new ServiceUnavailableException("Mailing service unavailable");
 		}
@@ -245,7 +246,12 @@ export class UserService implements OnApplicationBootstrap {
 	public async resend(request: RequestWithUser): Promise<UserPublicDto> {
 		const user = await this.getUserEntityById(request.user.id);
 
-		return await this.sendEmailConfirmation(user);
+		try {
+			return await this.sendEmailConfirmation(user);
+		} catch(e: any) {
+			Logger.error(`Mailing service error: ${e.message}`);
+			throw new ServiceUnavailableException("Mailing service unavailable");
+		}
 	}
 
 	private async sendEmailConfirmation(user: UserEntity): Promise<UserPublicDto> {
