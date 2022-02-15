@@ -12,7 +12,10 @@
       }
     ],
     "assets": [
-      "services/mail/templates/**/*"
+      {
+        "include": "services/mail/templates/**/*",
+        "outDir": "dist/src"
+      }
     ],
     "watchAssets": true
   }
