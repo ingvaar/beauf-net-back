@@ -10,6 +10,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 
 import { GoogleService } from '../services/google/google.service';
 import { Role } from '../auth/roles/role.enum';
@@ -21,7 +22,6 @@ import { UserPublicDto } from './dto/user.public.dto';
 import { UserEntity } from './user.entity';
 import { RequestWithUser } from './user.utils';
 import { MailService } from '../services/mail/mail.service';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService implements OnApplicationBootstrap {

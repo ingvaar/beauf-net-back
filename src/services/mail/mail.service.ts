@@ -16,7 +16,7 @@ export class MailService {
 		await this.mailerService.sendMail({
 			to: user.email,
 			subject: 'Welcome to Beauf.net! Confirm your Email',
-			template: 'confirmation',
+			template: './confirmation',
 			context: {
 				name: user.username,
 				url,
