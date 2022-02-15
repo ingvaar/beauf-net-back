@@ -6,6 +6,7 @@ import {
 	UnauthorizedException,
 	Logger,
 	BadRequestException,
+	ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -158,6 +159,7 @@ export class UserService implements OnApplicationBootstrap {
 			await this.mailService.sendEmailConfirmation(savedUser, token);
 		} catch(e: any){
 			await this.userRepository.delete(savedUser);
+			throw new ServiceUnavailableException("Mailing service unavailable");
 		}
 
 		return new UserPrivateDto(savedUser);
