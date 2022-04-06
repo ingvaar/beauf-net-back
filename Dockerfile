@@ -10,7 +10,7 @@ COPY yarn.lock ./
 
 COPY *.json ./
 
-RUN yarn install --prod &&\
+RUN yarn install &&\
 	yarn cache clean
 
 # ---- Copy Files/Build ----
