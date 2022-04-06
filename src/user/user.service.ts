@@ -155,13 +155,7 @@ export class UserService implements OnApplicationBootstrap {
 			email: savedUser.email,
 		});
 
-		try {
-			await this.mailService.sendEmailConfirmation(savedUser, token);
-		} catch(e: any){
-			Logger.error(`Mailing service error: ${e.message}`);
-			await this.userRepository.delete(savedUser);
-			throw new ServiceUnavailableException("Mailing service unavailable");
-		}
+		await this.mailService.sendEmailConfirmation(savedUser, token);
 
 		return new UserPrivateDto(savedUser);
 	}
@@ -199,7 +193,7 @@ export class UserService implements OnApplicationBootstrap {
 		const patchedUser = await this.userRepository.save(updated);
 
 		if (toPatch.email) {
-			this.sendEmailConfirmation(patchedUser);
+			await this.sendEmailConfirmation(patchedUser);
 		}
 
 		return new UserPrivateDto(patchedUser);
