@@ -12,7 +12,6 @@ data:
   POSTGRES_PASSWORD: "{{ postgres_pass | b64encode | regex_replace('\n', '') }}"
 
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -26,7 +25,7 @@ spec:
     storage: 5Gi
   volumeMode: Filesystem
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete
   storageClassName: local-storage
   local:
@@ -34,14 +33,13 @@ spec:
   nodeAffinity:
     required:
       nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - "{{ storage_hostname }}"
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - "{{ storage_hostname }}"
 
 ---
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -51,14 +49,13 @@ metadata:
     app: postgres
 spec:
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   storageClassName: "local-storage"
   resources:
     requests:
       storage: 5Gi
 
 ---
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -76,18 +73,18 @@ spec:
         app: postgres
     spec:
       containers:
-      - name: postgres
-        envFrom:
-          - secretRef:
-              name: postgres-secret
-        volumeMounts:
-          - mountPath: /var/lib/postgresql/data
-            name: postgredb
-        image: postgres:10-alpine
-        imagePullPolicy: IfNotPresent
-        ports:
-          - containerPort: 5432
-            protocol: TCP
+        - name: postgres
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+          image: postgres:10-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              protocol: TCP
       restartPolicy: Always
       volumes:
         - name: postgredb
@@ -95,7 +92,6 @@ spec:
             claimName: postgres-pvc
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -110,4 +106,4 @@ spec:
       protocol: TCP
       targetPort: 5432
   selector:
-   app: postgres
+    app: postgres

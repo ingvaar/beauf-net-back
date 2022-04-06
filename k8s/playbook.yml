@@ -12,7 +12,6 @@
     docker_config: config
     storage_hostname: server
   tasks:
-
     - name: Run whoami without become.
       command: whoami
       changed_when: false
