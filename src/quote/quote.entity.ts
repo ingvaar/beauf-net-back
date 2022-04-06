@@ -28,7 +28,7 @@ export class QuoteEntity {
 	@Column({
 		nullable: false
 	})
-	validated: boolean = false;
+	validated = false;
 
 	@Column({
 		nullable: true

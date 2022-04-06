@@ -121,7 +121,7 @@ describe('User Service', () => {
 			} as RequestWithUser;
 			jest.spyOn(userRepository, 'findOneOrFail').mockResolvedValue(user1);
 
-			await expect(userService.getUser('1', mockRequest)).resolves.toEqual(user1Private as Object);
+			await expect(userService.getUser('1', mockRequest)).resolves.toEqual(user1Private);
 		});
 
 		it('should throw a NotFoundException if no user is found', async function () {

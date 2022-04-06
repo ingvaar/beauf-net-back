@@ -51,7 +51,7 @@ export class UserService implements OnApplicationBootstrap {
 			adminPassword = process.env.ADMIN_PASSWORD
 		}
 
-		let toSave = Object.assign(new UserEntity(), {
+		const toSave = Object.assign(new UserEntity(), {
 			username: adminName,
 			password: await bcrypt.hash(adminPassword, 10),
 			role: Role.Admin,
@@ -67,10 +67,10 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	private makePassword(length: number) {
-		let result: string = "";
-		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&é\"\'(-è_çà)=';
+		let result = "";
+		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&é"\'(-è_çà)=';
 		const charactersLength = characters.length;
-		for (var i = 0; i < length; i++) {
+		for (let i = 0; i < length; i++) {
 			result += characters.charAt(Math.floor(Math.random() *
 				charactersLength));
 		}
@@ -137,7 +137,7 @@ export class UserService implements OnApplicationBootstrap {
 			throw new BadRequestException("invalid captcha");
 		}
 
-		let toSave = Object.assign(new UserEntity(), newUser);
+		const toSave = Object.assign(new UserEntity(), newUser);
 		toSave.password = await bcrypt.hash(toSave.password, 10);
 
 		if ((await this.userRepository.findOne({ username: newUser.username })) != null) {

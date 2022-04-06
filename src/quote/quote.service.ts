@@ -24,7 +24,7 @@ export class QuoteService {
 			throw new BadRequestException("invalid captcha");
 		}
 
-		let toSave = Object.assign(new QuoteEntity(), newQuote);
+		const toSave = Object.assign(new QuoteEntity(), newQuote);
 
 		return new QuotePublicDto(await this.quoteRepository.save(toSave));
 	}
