@@ -10,7 +10,8 @@ COPY yarn.lock ./
 
 COPY *.json ./
 
-RUN yarn install
+RUN yarn install --prod &&\
+	yarn cache clean
 
 # ---- Copy Files/Build ----
 FROM dependencies AS build
@@ -28,7 +29,8 @@ WORKDIR /app
 
 COPY --from=dependencies /app/package.json ./
 
-RUN yarn install --prod
+RUN yarn install --prod &&\
+	yarn cache clean
 
 COPY --from=build /app ./
 
