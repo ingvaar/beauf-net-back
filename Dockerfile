@@ -36,4 +36,4 @@ COPY --from=build /app ./
 
 EXPOSE 5000
 
-ENTRYPOINT yarn run start
+ENTRYPOINT ["yarn", "run", "start"]
