@@ -17,12 +17,16 @@ export class AuthService {
 		let user = undefined;
 		try {
 			user = await this.userService.getUserByUsername(identifier);
-		} catch { }
+		} catch {
+			// NTD
+		}
 
 		if (!user) {
 			try {
 				user = await this.userService.getUserByEmail(identifier);
-			} catch { }
+			} catch {
+				// NTD
+			}
 		}
 
 		if (!user) {

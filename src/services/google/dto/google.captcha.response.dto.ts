@@ -3,4 +3,4 @@ export class CaptchaResponseDto {
 	challengeTS!: string;
 	hostname!: string;
 	errorCodes?: string[];
-};
+}
