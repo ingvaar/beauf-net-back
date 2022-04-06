@@ -8,7 +8,6 @@
 
 ### Deployment
 
-
 This project uses [Docker](https://www.docker.com/) to deploy.
 There is a production ready `Dockerfile` on the project's root.
 You just have to build the Docker image to deploy/run the API.
