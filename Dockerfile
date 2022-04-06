@@ -1,10 +1,7 @@
-# ---- Base Node ----
-
-FROM node:17-alpine AS base
-WORKDIR /app
-
 # ---- Dependencies ----
-FROM base AS dependencies
+FROM node:17-alpine AS dependencies
+
+WORKDIR /app
 
 COPY yarn.lock ./
 
@@ -14,7 +11,7 @@ RUN yarn install &&\
 	yarn cache clean
 
 # ---- Copy Files/Build ----
-FROM dependencies AS build
+FROM node:17-alpine AS build
 
 WORKDIR /app
 
