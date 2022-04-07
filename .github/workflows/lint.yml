@@ -57,13 +57,13 @@ jobs:
       - name: Lint dockerfile (hadolint)
         uses: hadolint/hadolint-action@v1.6.0
 
-      - name: Lint dockerfile (docker-lint)
-        uses: luke142367/Docker-Lint-Action@v1.1.1
-        if: true && !contains(github.actor, 'dependabot')
-        with:
-          target: Dockerfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Lint dockerfile (docker-lint)
+#        uses: luke142367/Docker-Lint-Action@v1.1.1
+#        if: true && !contains(github.actor, 'dependabot')
+#        with:
+#          target: Dockerfile
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   lint-ts:
     runs-on: ubuntu-20.04
