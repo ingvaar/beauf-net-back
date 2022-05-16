@@ -49,7 +49,7 @@
 		"reflect-metadata": "^0.1.13",
 		"rxjs": "^7.5.2",
 		"supertest": "^6.2.2",
-		"swagger-ui-express": "^4.3.0",
+		"swagger-ui-express": "^4.4.0",
 		"typeorm": "^0.2.41",
 		"uuid": "^8.3.2"
 	},
