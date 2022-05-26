@@ -25,10 +25,11 @@ export class QuoteEntity {
 	})
 	source?: string;
 
+	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 	@Column({
 		nullable: false
 	})
-	validated = false;
+	validated: boolean = false;
 
 	@Column({
 		nullable: true
