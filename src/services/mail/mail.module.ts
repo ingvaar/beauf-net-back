@@ -22,7 +22,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 					from: `"No Reply" <noreply@beauf.net>`,
 				},
 				template: {
-					dir: join(__dirname, 'templates'),
+					dir: join(`${__dirname.split('dist')[0]}`, "/dist/templates"),
 					adapter: new HandlebarsAdapter(),
 					options: {
 						strict: true,

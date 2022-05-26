@@ -1,5 +1,4 @@
 # ---- Base Node ----
-
 FROM node:17-alpine AS base
 
 WORKDIR /app
@@ -17,6 +16,9 @@ RUN yarn install &&\
 # ---- Copy Files/Build ----
 FROM dependencies AS build
 
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
 WORKDIR /app
 
 COPY src /app
@@ -24,7 +26,7 @@ COPY src /app
 RUN yarn build
 
 # --- Release with Alpine ----
-FROM node:16-alpine AS release
+FROM node:17-alpine AS release
 
 WORKDIR /app
 
@@ -33,8 +35,10 @@ COPY --from=dependencies /app/package.json ./
 RUN yarn install --prod &&\
 	yarn cache clean
 
-COPY --from=build /app ./
+COPY --from=build /app/dist ./dist
+
+COPY ./src/templates ./dist/templates
 
 EXPOSE 5000
 
-ENTRYPOINT ["yarn", "run", "start"]
+ENTRYPOINT ["node", "dist/main"]
