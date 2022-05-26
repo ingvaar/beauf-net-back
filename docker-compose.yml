@@ -4,7 +4,7 @@ services:
     api:
         build:
             context: .
-            dockerfile: Dockerfile.dev
+            dockerfile: Dockerfile
         restart: unless-stopped
         environment:
             - PORT=${BEAUF_NET_PORT}

@@ -10,10 +10,6 @@
           "introspectComments": true
         }
       }
-    ],
-    "assets": [
-        "services/mail/templates/**/*"
-    ],
-    "watchAssets": true
+    ]
   }
 }

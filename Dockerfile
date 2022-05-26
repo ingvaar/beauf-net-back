@@ -37,6 +37,8 @@ RUN yarn install --prod &&\
 
 COPY --from=build /app/dist ./dist
 
+COPY ./src/templates ./dist/templates
+
 EXPOSE 5000
 
 ENTRYPOINT ["node", "dist/main"]
