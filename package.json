@@ -55,7 +55,7 @@
 	},
 	"devDependencies": {
 		"@nestjs/cli": "^8.2.6",
-		"@nestjs/testing": "^8.4.5",
+		"@nestjs/testing": "^8.4.7",
 		"@types/bcrypt": "^5.0.0",
 		"@types/inline-css": "^3.0.1",
 		"@types/jest": "^27.4.0",
