@@ -51,7 +51,7 @@
 		"supertest": "^6.2.4",
 		"swagger-ui-express": "^4.4.0",
 		"typeorm": "^0.2.41",
-		"uuid": "^8.3.2"
+		"uuid": "^9.0.0"
 	},
 	"devDependencies": {
 		"@nestjs/cli": "^8.2.6",
@@ -65,7 +65,7 @@
 		"@types/passport-jwt": "^3.0.3",
 		"@types/passport-local": "^1.0.33",
 		"@types/supertest": "^2.0.12",
-		"@types/uuid": "^8.3.4",
+		"@types/uuid": "^9.0.1",
 		"@types/validator": "^13.7.4",
 		"@typescript-eslint/eslint-plugin": "5.30.7",
 		"@typescript-eslint/parser": "5.30.6",
