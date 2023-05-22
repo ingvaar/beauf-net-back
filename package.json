@@ -59,7 +59,7 @@
 		"@types/bcrypt": "^5.0.0",
 		"@types/inline-css": "^3.0.1",
 		"@types/jest": "^27.4.0",
-		"@types/morgan": "^1.9.3",
+		"@types/morgan": "^1.9.4",
 		"@types/node": "^20.1.4",
 		"@types/nodemailer": "^6.4.4",
 		"@types/passport-jwt": "^3.0.3",
