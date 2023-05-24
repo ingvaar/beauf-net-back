@@ -53,8 +53,8 @@ describe('Quote Service', () => {
 					provide: getRepositoryToken(QuoteEntity),
 					useValue: {
 						find: jest.fn(),
-						findOne: jest.fn(),
-						findOneOrFail: jest.fn(),
+						findOneBy: jest.fn(),
+						findOneByOrFail: jest.fn(),
 						count: jest.fn(),
 						save: jest.fn(),
 						remove: jest.fn(),
@@ -178,7 +178,7 @@ describe('Quote Service', () => {
 
 	describe("delete quote", () => {
 		it("delete quote as admin", async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
 				user: {
@@ -191,7 +191,7 @@ describe('Quote Service', () => {
 		});
 
 		it("delete quote as user", async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
 				user: {
@@ -206,7 +206,7 @@ describe('Quote Service', () => {
 
 	describe("update quote", () => {
 		it("update quote as admin", async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
@@ -220,7 +220,7 @@ describe('Quote Service', () => {
 		});
 
 		it("update quote as user", async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
 				user: {
@@ -234,7 +234,7 @@ describe('Quote Service', () => {
 
 		it("update quote author", async function () {
 			const toUpdateAuthor = Object.assign(new QuoteEntity(), quote1);
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(toUpdateAuthor);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(toUpdateAuthor);
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(toUpdateAuthor);
 
 			const mockRequest = {
@@ -251,7 +251,7 @@ describe('Quote Service', () => {
 
 		it("update quote text", async function () {
 			const toUpdateText = Object.assign(new QuoteEntity(), quote1);
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(toUpdateText);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(toUpdateText);
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(toUpdateText);
 
 			const mockRequest = {
@@ -268,7 +268,7 @@ describe('Quote Service', () => {
 
 		it("update quote source", async function () {
 			const toUpdateSource = Object.assign(new QuoteEntity(), quote1);
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(toUpdateSource);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(toUpdateSource);
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(toUpdateSource);
 
 			const mockRequest = {
@@ -286,7 +286,7 @@ describe('Quote Service', () => {
 
 	describe("get private quote", () => {
 		it("get private quote as admin", async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
 				user: {
@@ -299,7 +299,7 @@ describe('Quote Service', () => {
 		});
 
 		it("get private quote as user", async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
 				user: {
@@ -387,7 +387,7 @@ describe('Quote Service', () => {
 
 	describe("validate quote", () => {
 		it('should throw', async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
 				user: {
@@ -400,7 +400,7 @@ describe('Quote Service', () => {
 		});
 
 		it('should return validated quote', async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockResolvedValueOnce(quote1);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockResolvedValueOnce(quote1);
 			jest.spyOn(quoteRepository, 'save').mockResolvedValueOnce(quote1);
 
 			const mockRequest = {
@@ -416,7 +416,7 @@ describe('Quote Service', () => {
 
 	describe("get quote entity", () => {
 		it('should throw if quote does not exists', async function () {
-			jest.spyOn(quoteRepository, 'findOneOrFail').mockRejectedValueOnce(Error);
+			jest.spyOn(quoteRepository, 'findOneByOrFail').mockRejectedValueOnce(Error);
 
 			await expect(quoteService.getQuoteEntity('1')).rejects.toThrow(NotFoundException);
 		});
