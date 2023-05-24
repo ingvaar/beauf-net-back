@@ -75,7 +75,7 @@ export class QuoteService {
 
 	public async getQuoteEntity(id: string): Promise<QuoteEntity> {
 		try {
-			return await this.quoteRepository.findOneOrFail(id);
+			return await this.quoteRepository.findOneByOrFail({ id });
 		} catch (error) {
 			throw new NotFoundException(`no quote with id ${id} found`);
 		}

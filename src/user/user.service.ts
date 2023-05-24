@@ -38,7 +38,7 @@ export class UserService implements OnApplicationBootstrap {
 		const adminName = process.env.ADMIN_USERNAME || "admin";
 		let adminPassword: string;
 
-		const user = await this.userRepository.findOne({ username: adminName })
+		const user = await this.userRepository.findOneBy({ username: adminName })
 		if (user != undefined) {
 			Logger.log(`Admin already created.`)
 			return;
@@ -107,13 +107,13 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	public async getUserEntityById(id: string): Promise<UserEntity> {
-		return this.userRepository.findOneOrFail(id).catch(() => {
+		return this.userRepository.findOneByOrFail({ id: id }).catch(() => {
 			throw new NotFoundException(`User with id ${id} not found`);
 		});
 	}
 
 	public async getUserRole(id: string): Promise<Role> {
-		const user: UserEntity = await this.userRepository.findOneOrFail(id).catch(() => {
+		const user: UserEntity = await this.userRepository.findOneByOrFail({ id: id }).catch(() => {
 			throw new NotFoundException(`User with id ${id} not found`);
 		});
 
@@ -121,13 +121,13 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	public async getUserByUsername(username: string): Promise<UserEntity> {
-		return this.userRepository.findOneOrFail({ username: username }).catch(() => {
+		return this.userRepository.findOneByOrFail({ username: username }).catch(() => {
 			throw new NotFoundException(`User with username ${username} not found`);
 		});
 	}
 
 	public async getUserByEmail(email: string): Promise<UserEntity> {
-		return this.userRepository.findOneOrFail({ email: email }).catch(() => {
+		return this.userRepository.findOneByOrFail({ email: email }).catch(() => {
 			throw new NotFoundException(`User with email ${email} not found`);
 		});
 	}
@@ -140,11 +140,11 @@ export class UserService implements OnApplicationBootstrap {
 		const toSave = Object.assign(new UserEntity(), newUser);
 		toSave.password = await bcrypt.hash(toSave.password, 10);
 
-		if ((await this.userRepository.findOne({ username: newUser.username })) != null) {
+		if ((await this.userRepository.findOneBy({ username: newUser.username })) != null) {
 			throw new ConflictException(`User with username ${newUser.username} already exists`);
 		}
 
-		if ((await this.userRepository.findOne({ email: newUser.email })) != null) {
+		if ((await this.userRepository.findOneBy({ email: newUser.email })) != null) {
 			throw new ConflictException(`User with email ${newUser.email} already exists`);
 		}
 
@@ -172,11 +172,11 @@ export class UserService implements OnApplicationBootstrap {
 		const updated: UserEntity = Object.assign(dbUser, toPatch);
 		updated.updatedAt = new Date().toISOString();
 
-		if (toPatch.username && (await this.userRepository.findOne({ username: toPatch.username })) != null) {
+		if (toPatch.username && (await this.userRepository.findOneBy({ username: toPatch.username })) != null) {
 			throw new ConflictException(`User with username ${toPatch.username} already exists`);
 		}
 
-		if (toPatch.email && (await this.userRepository.findOne({ email: toPatch.email })) != null) {
+		if (toPatch.email && (await this.userRepository.findOneBy({ email: toPatch.email })) != null) {
 			throw new ConflictException(`User with email ${toPatch.email} already exists`);
 		}
 
@@ -209,7 +209,7 @@ export class UserService implements OnApplicationBootstrap {
 	}
 
 	public async userExist(userID: string): Promise<boolean> {
-		if (!(await this.userRepository.findOne(userID))) {
+		if (!(await this.userRepository.findOneBy({ id: userID }))) {
 			return false;
 		}
 		return true;
