@@ -1,5 +1,5 @@
 # ---- Base Node ----
-FROM node:17-alpine AS base
+FROM node:18-alpine AS base
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ COPY src /app
 RUN yarn build
 
 # --- Release with Alpine ----
-FROM node:17-alpine AS release
+FROM node:18-alpine AS release
 
 WORKDIR /app
 
