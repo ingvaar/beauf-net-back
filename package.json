@@ -52,7 +52,7 @@
 		"rxjs": "^7.8.1",
 		"supertest": "^6.3.3",
 		"typeorm": "^0.3.17",
-		"uuid": "^9.0.0",
+		"uuid": "^9.0.1",
 		"webpack": "^5.88.2"
 	},
 	"devDependencies": {
@@ -68,7 +68,7 @@
 		"@types/passport-jwt": "^3.0.9",
 		"@types/passport-local": "^1.0.35",
 		"@types/supertest": "^2.0.12",
-		"@types/uuid": "^9.0.3",
+		"@types/uuid": "^9.0.4",
 		"@types/pug": "^2.0.6",
 		"@types/validator": "^13.11.1",
 		"@typescript-eslint/eslint-plugin": "5.62.0",
